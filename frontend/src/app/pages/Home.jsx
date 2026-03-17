@@ -4,6 +4,8 @@ import { Home as HomeIcon, Car, ArrowRight } from "lucide-react";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { initializeDemoUsers } from "../utils/initializeDemoUsers";
+import dorm from "../images/dorm.png";
+import carpool from "../images/carpool.png";
 
 export default function Home() {
   // Initialize demo users on home page load
@@ -79,7 +81,7 @@ export default function Home() {
                 for housing.
               </p>
               <img
-                src="https://images.unsplash.com/photo-1614715661635-abb0547c125c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBkb3JtJTIwcm9vbSUyMGludGVyaW9yfGVufDF8fHx8MTc3MjIzNjcxMnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                src={dorm}
                 alt="Modern dorm room"
                 className="rounded-lg mb-4 md:mb-6 w-full h-40 sm:h-48 object-cover"
               />
@@ -106,7 +108,7 @@ export default function Home() {
                 go.
               </p>
               <img
-                src="https://images.unsplash.com/photo-1719778532480-544012d378a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmllbmRzJTIwZHJpdmluZyUyMGNhciUyMHRvZ2V0aGVyfGVufDF8fHx8MTc3MjIzNjcxNHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                src={carpool}
                 alt="Friends in a car"
                 className="rounded-lg mb-4 md:mb-6 w-full h-40 sm:h-48 object-cover"
               />

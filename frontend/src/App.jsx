@@ -1,6 +1,6 @@
 import { RouterProvider } from "react-router";
 import { router } from "./routes.js";
-import { AuthProvider } from "./contexts/AuthContext.jsx";
+import { AuthProvider } from "./app/contexts/AuthContext.jsx";
 import { useEffect } from "react";
 
 /**

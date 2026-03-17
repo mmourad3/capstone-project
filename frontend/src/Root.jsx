@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from "react-router";
 import { useEffect, useState } from "react";
-import { AIChatbot } from "./components/AIChatbot";
+import { AIChatbot } from "./app/components/AIChatbot";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 

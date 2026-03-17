@@ -1,6 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
-import { SmartBackButton } from '../components/SmartBackButton';
 import { useEffect, useState } from 'react';
 
 export default function NotFound() {
@@ -27,7 +26,7 @@ export default function NotFound() {
           <p className="text-lg sm:text-xl mb-8 text-gray-600 dark:text-gray-400">
             This page does not exist
           </p>
-          <SmartBackButton label="Go Back" />
+          
         </section>
       </div>
     </div>

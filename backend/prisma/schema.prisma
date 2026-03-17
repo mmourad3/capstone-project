@@ -1,0 +1,267 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ========================================
+// USER & AUTHENTICATION
+// ========================================
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  password          String
+  name              String
+  role              String    // "dorm-seeker", "dorm-provider", "carpool"
+  
+  university        String
+  gender            String
+  phone             String
+  country           String
+  profilePicture    String
+  
+  emailVerified     Boolean   @default(false)
+  verificationToken String?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  // Relations
+  questionnaire     Questionnaire?
+  classSchedule     ClassScheduleBlock[]
+  
+  dormListings      DormListing[]
+  dormApplicationsSent     DormApplication[] @relation("DormApplicant")
+  dormApplicationsReceived DormApplication[] @relation("DormOwner")
+  
+  carpoolListings   CarpoolListing[]
+  carpoolPassengers CarpoolPassenger[]
+  
+  @@index([email])
+  @@index([university])
+  @@index([role])
+}
+
+// ========================================
+// QUESTIONNAIRE (FOR DORM USERS)
+// ========================================
+
+model Questionnaire {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  sleepSchedule         String
+  wakeUpTime            String
+  sleepTime             String
+  cleanliness           String
+  organizationLevel     String
+  socialLevel           String
+  guestFrequency        String
+  sharedSpaces          String
+  smoking               String
+  drinking              String
+  pets                  String
+  dietaryPreferences    String?
+  studyTime             String
+  noiseLevel            String
+  musicWhileStudying    String
+  temperaturePreference String
+  sharingItems          String
+  allergies             String?
+  
+  interests             String   @db.Text // JSON array
+  personalQualities     String   @db.Text // JSON array
+  importantQualities    String   @db.Text // JSON array
+  dealBreakers          String   @db.Text // JSON array
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+// ========================================
+// COMPATIBILITY SCORES (FOR DORM MATCHING)
+// ========================================
+
+model CompatibilityScore {
+  id                    String   @id @default(uuid())
+  
+  seekerId              String
+  providerId            String
+  
+  score                 Int      // 0-100 compatibility percentage
+  
+  // Detailed breakdown
+  matchReasons          String   @db.Text // JSON array of match reasons
+  potentialConflicts    String   @db.Text // JSON array of conflicts
+  dealBreakerViolations String   @db.Text // JSON array of deal breaker violations
+  categoryScores        String   @db.Text // JSON object with scores by category
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@unique([seekerId, providerId])
+  @@index([seekerId])
+  @@index([providerId])
+  @@index([score])
+}
+
+// ========================================
+// CLASS SCHEDULE (FOR CARPOOL USERS)
+// ========================================
+
+model ClassScheduleBlock {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  courseName  String?
+  days        String   @db.Text // JSON array: ["monday", "wednesday"]
+  startTime   String
+  endTime     String
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+// ========================================
+// DORM LISTINGS
+// ========================================
+
+model DormListing {
+  id              String   @id @default(uuid())
+  
+  posterId        String
+  poster          User     @relation(fields: [posterId], references: [id], onDelete: Cascade)
+  posterName      String
+  posterEmail     String
+  
+  title           String
+  location        String
+  latitude        Float
+  longitude       Float
+  price           String
+  roomType        String   // "Single Room", "Shared Room"
+  gender          String   // "Male", "Female", "Any"
+  description     String   @db.Text
+  
+  amenities       String   @db.Text // JSON array
+  images          String   @db.Text // JSON array
+  
+  status          String   @default("Active") // "Active", "Inactive", "Rented"
+  inquiries       Int      @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  applications    DormApplication[]
+  
+  @@index([posterId])
+  @@index([status])
+  @@index([latitude, longitude])
+}
+
+model DormApplication {
+  id              String   @id @default(uuid())
+  
+  applicantId     String
+  applicant       User     @relation("DormApplicant", fields: [applicantId], references: [id], onDelete: Cascade)
+  
+  dormId          String
+  dorm            DormListing @relation(fields: [dormId], references: [id], onDelete: Cascade)
+  
+  ownerId         String
+  owner           User     @relation("DormOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  message         String?  @db.Text
+  status          String   @default("Pending") // "Pending", "Accepted", "Rejected"
+  
+  createdAt       DateTime @default(now())
+  respondedAt     DateTime?
+  
+  @@unique([applicantId, dormId])
+  @@index([applicantId])
+  @@index([dormId])
+  @@index([ownerId])
+  @@index([status])
+}
+
+// ========================================
+// CARPOOL LISTINGS
+// ========================================
+
+model CarpoolListing {
+  id                String   @id @default(uuid())
+  
+  driverId          String
+  driver            User     @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  driverName        String
+  driverEmail       String
+  driverPhone       String
+  driverProfilePicture String?
+  driverGender      String
+  
+  university        String
+  region            String
+  pickupLocation    String
+  pickupSpot        String
+  destination       String
+  
+  date              String
+  endDate           String?
+  time              String
+  returnTime        String?
+  
+  driverSchedule    String   @db.Text // JSON array of schedule blocks
+  
+  seats             Int      @default(0)
+  totalSeats        Int
+  
+  price             String
+  carModel          String
+  
+  genderPreference  String   @default("both")
+  
+  status            String   @default("Active") // "Active" or "Full" only
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  passengers        CarpoolPassenger[]
+  
+  @@index([driverId])
+  @@index([university, region, status])
+  @@index([date])
+}
+
+model CarpoolPassenger {
+  id              String   @id @default(uuid())
+  
+  passengerId     String
+  passenger       User     @relation(fields: [passengerId], references: [id], onDelete: Cascade)
+  passengerName   String
+  passengerEmail  String
+  passengerPhone  String
+  passengerProfilePicture String?
+  passengerGender String
+  
+  carpoolId       String
+  carpool         CarpoolListing @relation(fields: [carpoolId], references: [id], onDelete: Cascade)
+  
+  status          String   @default("Confirmed")
+  
+  joinedAt        DateTime @default(now())
+  
+  @@unique([passengerId, carpoolId])
+  @@index([passengerId])
+  @@index([carpoolId])
+}

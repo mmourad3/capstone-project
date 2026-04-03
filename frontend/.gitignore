@@ -22,3 +22,23 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# environment variables
+.env
+.env.*
+!.env.example
+
+# build / cache
+.cache
+.vite
+.next
+out
+
+# coverage
+coverage/
+
+# typescript
+*.tsbuildinfo
+
+# OS junk (extra safety)
+Thumbs.db

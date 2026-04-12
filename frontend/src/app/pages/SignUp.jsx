@@ -362,7 +362,18 @@ export default function SignUp() {
         university
       };
 
-      const response = await authAPI.register(signupData);
+      const res = await fetch('http://192.168.0.129:5678/webhook-test/create-account', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify(signupData)
+});
+
+      if (!res.ok) {
+         throw new Error('Failed to send data to n8n');
+}
+
+      const data = await res.json();
+      console.log('Data sent to n8n!', data);
 
       // Upload profile picture if provided
       if (profilePicture) {

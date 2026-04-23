@@ -101,48 +101,14 @@ export default function LifestyleQuestionnaire() {
     }
   };
 
-  const handleSubmit = async () => {
-    // 1. Get the email from localStorage to identify the user
-    const userEmail = localStorage.getItem('userEmail');
+  const handleSubmit = () => {
+    console.log("Questionnaire Data:", formData);
     
-    // 2. Prepare the data for n8n
-    const payload = {
-      email: userEmail,
-      lifestyleData: formData 
-    };
-
-    try {
-      // 3. Send to n8n (Replace with your actual n8n Webhook URL)
-      const response = await fetch('http://192.168.0.129:5678/webhook-test/update-lifestyle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        // --- Success Logic ---
-        saveUserQuestionnaire(formData);
-        localStorage.removeItem('signupFormData');
-
-        // Check if user came from profile page
-        const returnToProfile = localStorage.getItem('returnToProfile');
-        
-        if (returnToProfile === 'true') {
-          localStorage.removeItem('returnToProfile');
-          toast.success('Lifestyle preferences updated successfully!');
-          navigate('/profile');
-        } else {
-          toast.success('Questionnaire completed successfully!');
-          setShowVerificationMessage(true);
-        }
-      } else {
-        toast.error('The server received the data but returned an error.');
-      }
-    } catch (error) {
-      console.error("Submission error:", error);
-      toast.error('Could not connect to the n8n server. Is it running?');
-    }
-  };
+    // Save questionnaire data to user-scoped localStorage
+    saveUserQuestionnaire(formData);
+    
+    // Clear the signup form data from localStorage
+    localStorage.removeItem('signupFormData');
     
     // TODO: Backend Integration
     // Submit the questionnaire data to the API
@@ -167,7 +133,22 @@ export default function LifestyleQuestionnaire() {
     //   });
 
     // Check if user came from profile page
+    const returnToProfile = localStorage.getItem('returnToProfile');
     
+    if (returnToProfile === 'true') {
+      // Clear the flag
+      localStorage.removeItem('returnToProfile');
+      // Show success toast
+      toast.success('Lifestyle preferences updated successfully!');
+      // Redirect back to profile
+      navigate('/profile');
+    } else {
+      // Show success toast for new questionnaire completion
+      toast.success('Questionnaire completed successfully!');
+      // For now, show verification message immediately
+      setShowVerificationMessage(true);
+    }
+  };
 
   const isStepComplete = () => {
     switch (currentStep) {

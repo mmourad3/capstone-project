@@ -352,16 +352,20 @@ export default function SignUp() {
     try {
       // Try API first
       const signupData = {
-        name: `${firstName} ${lastName}`.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         email: email.toLowerCase().trim(),
         password,
         phone: `${countryCode}${phone}`,
         gender,
         role,
         country,
-        university
+        university,
+        region: role === "carpool" ? carpoolRegion : null,
+        classSchedule: role === "carpool" ? classSchedule : [],
       };
 
+      
       const response = await authAPI.register(signupData);
 
       // Upload profile picture if provided
@@ -673,8 +677,8 @@ export default function SignUp() {
                   className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base cursor-pointer"
                 >
                   <option value="">Select your role</option>
-                  <option value="dorm-seeker">Student looking for dorm</option>
-                  <option value="dorm-provider">Student offering dorm</option>
+                  <option value="dorm_seeker">Student looking for dorm</option>
+                  <option value="dorm_provider">Student offering dorm</option>
                   <option value="carpool">Student looking for carpool</option>
                 </select>
               </div>

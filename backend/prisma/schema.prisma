@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
 }
+
 
 // ========================================
 // USER & AUTHENTICATION
@@ -14,22 +15,23 @@ model User {
   id                String    @id @default(uuid())
   email             String    @unique
   password          String
-  name              String
-  role              String    // "dorm-seeker", "dorm-provider", "carpool"
+  firstName         String
+  lastName          String
+  role              Role    // "dorm-seeker", "dorm-provider", "carpool"
   
   university        String
   gender            String
-  phone             String
+  phone             String @unique
   country           String
-  profilePicture    String
+  profilePicture    String?
+  region            String? // For carpool users
   
-  emailVerified     Boolean   @default(false)
-  verificationToken String?
-  resetToken        String?
-  resetTokenExpiry  DateTime?
+  // emailVerified     Boolean   @default(false)
+  // verificationToken String?
+  // resetToken        String?
+  // resetTokenExpiry  DateTime?
   
   createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
   
   // Relations
   questionnaire     Questionnaire?
@@ -47,6 +49,11 @@ model User {
   @@index([role])
 }
 
+enum Role {
+  dorm_seeker
+  dorm_provider
+  carpool
+}
 // ========================================
 // QUESTIONNAIRE (FOR DORM USERS)
 // ========================================

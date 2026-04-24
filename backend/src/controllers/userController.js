@@ -98,6 +98,7 @@ export const getMe = async (req, res) => {
   }
 };
 
+
 /**
  * UPDATE USER PROFILE
  */

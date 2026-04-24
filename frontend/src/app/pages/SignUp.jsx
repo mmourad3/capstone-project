@@ -365,6 +365,7 @@ export default function SignUp() {
         classSchedule: role === "carpool" ? classSchedule : [],
       };
 
+      
       const response = await authAPI.register(signupData);
 
       // Upload profile picture if provided

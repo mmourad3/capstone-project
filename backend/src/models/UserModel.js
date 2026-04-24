@@ -8,6 +8,7 @@ export const UserModel = {
       where: { id },
     }),
 
+    
   findProfileById: (id) =>
     prisma.user.findUnique({
       where: { id },

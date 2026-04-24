@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +19,7 @@
     "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
+    "@prisma/client": "^6.16.2",
     "prisma": "^7.4.2"
   }
 }

@@ -167,7 +167,7 @@ export default function LifestyleQuestionnaire() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 py-8 sm:py-12 px-4">
       <div className="max-w-3xl mx-auto">
-                  /* Questionnaire Form */
+                  {/* Questionnaire Form */}
           <div>
         {/* Back to Home Button */}
         <div className="mb-4">

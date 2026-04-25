@@ -1,4 +1,5 @@
 import express from "express";
+import { protect } from "../middleware/authMiddleware.js";
 import {
   register,
   login,
@@ -19,8 +20,7 @@ router.get("/check-email", checkEmailExists);
 router.get("/check-phone", checkPhoneExists);
 router.get("/users", getAllUsers);
 router.get("/users/:id", getUser);
-//router.get("/me", getMe);
-//router.put("/me", updateProfile);
-router.delete("/users/:id", deleteUser);
-
+router.get("/me", protect, getMe);
+router.put("/me", protect, updateProfile);
+router.delete("/users/:id", protect, deleteUser);
 export default router;

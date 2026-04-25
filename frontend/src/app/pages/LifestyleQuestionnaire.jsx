@@ -12,7 +12,7 @@ import { ArrowLeft, CheckCircle, Mail, Moon, Sun, Home, Users, Coffee, BookOpen,
 
 export default function LifestyleQuestionnaire() {
   const navigate = useNavigate();
-  const role = localStorage.getItem('userRole') || "dorm-seeker";
+  const role = localStorage.getItem('userRole') || "dorm_seeker";
   
   // Redirect carpool users - questionnaire is ONLY for dorm seekers and providers
   useEffect(() => {

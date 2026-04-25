@@ -501,18 +501,18 @@ export default function Profile() {
           <JoinedCarpoolsSection joinedCarpools={joinedCarpools} />
         )}
 
-        {/* Lifestyle Preferences Section - Only show for dorm-seeker and dorm-provider */}
+        {/* Lifestyle Preferences Section - Only show for dorm_seeker and dorm_provider */}
         {userData.role !== 'carpool' && (
           <LifestylePreferencesSection navigate={navigate} />
         )}
 
-        {/* My Roommates Section - Only show for dorm-seeker and dorm-provider */}
+        {/* My Roommates Section - Only show for dorm_seeker and dorm_provider */}
         {userData.role !== 'carpool' && (
           <RoommateSection />
         )}
 
-        {/* Favorite Dorms Section - Only show for dorm-seeker */}
-        {userData.role === 'dorm-seeker' && (
+        {/* Favorite Dorms Section - Only show for dorm_seeker */}
+        {userData.role === 'dorm_seeker' && (
           <FavoriteDormsSection
             favoritedListings={favoritedListings}
             handleViewDetails={handleViewDetails}

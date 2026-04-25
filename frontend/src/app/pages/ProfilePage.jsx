@@ -95,7 +95,7 @@ export default function ProfilePage() {
           name: demoListing.posterName || demoListing.poster || demoListing.name || 'User',
           gender: demoListing.posterGender || demoListing.gender || 'Not specified',
           profilePicture: demoListing.posterProfilePic || demoListing.profilePicture,
-          role: demoListing.role || 'dorm-provider', // Since they posted a dorm
+          role: demoListing.role || 'dorm_provider', // Since they posted a dorm
           phone: demoListing.posterPhone || demoListing.phone
         };
         userEmail = foundUser.email;
@@ -170,7 +170,7 @@ export default function ProfilePage() {
           gender: foundUser.gender || 'Not specified',
           university: university,
           profilePicture: foundUser.profilePicture,
-          role: foundUser.role || 'dorm-seeker',
+          role: foundUser.role || 'dorm_seeker',
           phone: foundUser.phone,
           questionnaire: userQuestionnaire,
           hasCompletedQuestionnaire: hasQuestionnaireData
@@ -196,9 +196,9 @@ export default function ProfilePage() {
     if (profile.userId === currentUserId) return false;
     
     // Show button only if:
-    // - Current user is a dorm-seeker (looking for dorms)
-    // - AND the profile being viewed is a dorm-provider (has a dorm)
-    return currentUserRole === 'dorm-seeker' && profile.role === 'dorm-provider';
+    // - Current user is a dorm_seeker (looking for dorms)
+    // - AND the profile being viewed is a dorm_provider (has a dorm)
+    return currentUserRole === 'dorm_seeker' && profile.role === 'dorm_provider';
   };
 
   // Determine if "Contact" button should be shown
@@ -212,9 +212,9 @@ export default function ProfilePage() {
     if (profile.userId === currentUserId) return false;
     
     // Show button only if:
-    // - Current user is a dorm-provider (has a dorm)
-    // - AND the profile being viewed is a dorm-seeker (looking for dorms)
-    return currentUserRole === 'dorm-provider' && profile.role === 'dorm-seeker';
+    // - Current user is a dorm_provider (has a dorm)
+    // - AND the profile being viewed is a dorm_seeker (looking for dorms)
+    return currentUserRole === 'dorm_provider' && profile.role === 'dorm_seeker';
   };
 
   // Get viewer's questionnaire for compatibility (user-scoped)

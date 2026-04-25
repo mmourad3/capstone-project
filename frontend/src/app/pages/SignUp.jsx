@@ -1,6 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router';
-import { ArrowLeft, MapPin, GraduationCap, CheckCircle, AlertCircle, Mail } from 'lucide-react';
+import {
+  ArrowLeft,
+  MapPin,
+  GraduationCap,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import { toast } from 'react-toastify';
 import { PasswordStrengthField } from '../components/form/PasswordStrengthField';
 import { PhoneCountryInput } from '../components/form/PhoneCountryInput';
@@ -8,13 +14,14 @@ import { ClassScheduleBuilder } from '../components/form/ClassScheduleBuilder';
 import { ProfilePictureUpload } from '../components/form/ProfilePictureUpload';
 import { EMAIL_UNIVERSITY_MAP, isValidUniversityEmail, getGroupedUniversities } from '../config/universityConfig';
 import { AVAILABLE_COUNTRIES as countries, getGroupedRegions } from '../config/appConfig';
-import { validatePhoneByCountry } from '../utils/phoneValidation';
 import { normalizeGender } from '../utils/genderHelpers';
 import { validatePassword, getPasswordErrorMessage } from '../utils/passwordValidation';
 import { createExistenceChecker } from '../utils/validationHelpers';
 import { createScheduleHelpers } from '../utils/scheduleHelpers';
 import { handleProfilePictureUpload } from '../utils/profileHelpers';
-import { authAPI, userAPI } from '../services/api';
+import { authAPI } from "../services/api";
+import { navigateToDashboard } from "../utils/navigationHelpers";
+import { saveAuthUser } from "../utils/authStorage";
 
 const groupedUniversities = getGroupedUniversities();
 
@@ -43,7 +50,6 @@ export default function SignUp() {
   const [university, setUniversity] = useState("");
   const [profilePicture, setProfilePicture] = useState(null);
   const [profilePicturePreview, setProfilePicturePreview] = useState("");
-  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [universityError, setUniversityError] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -57,15 +63,6 @@ export default function SignUp() {
   const [carpoolRegion, setCarpoolRegion] = useState("");
   const [classSchedule, setClassSchedule] = useState([]);
 
-  // Get all days that are already used in schedule blocks
-  const getUsedDays = () => {
-    const usedDays = [];
-    classSchedule.forEach(block => {
-      usedDays.push(...block.days);
-    });
-    return usedDays;
-  };
-
   // Schedule management helpers (imported from utils)
   const { addScheduleBlock, removeScheduleBlock, toggleDayInBlock, updateBlockTime, isDayUsedElsewhere } = createScheduleHelpers(classSchedule, setClassSchedule);
 
@@ -75,7 +72,6 @@ export default function SignUp() {
       firstName,
       lastName,
       email,
-      password,
       phone,
       gender,
       role,
@@ -132,7 +128,6 @@ export default function SignUp() {
     setIsChecking: setIsCheckingEmail,
     isValid: isEmailValid,
     errorMessage: 'This email is already registered. Please login or use a different email.',
-    localStorageKey: 'userEmail'
   });
 
   const checkPhoneExists = createExistenceChecker({
@@ -142,7 +137,6 @@ export default function SignUp() {
     setIsChecking: setIsCheckingPhone,
     isValid: isPhoneValid,
     errorMessage: 'This phone number is already registered. Please use a different phone number.',
-    localStorageKey: 'userPhone'
   });
 
   // Check email exists when user leaves the email field
@@ -350,88 +344,36 @@ export default function SignUp() {
     setIsLoading(true);
     
     try {
-      // Try API first
       const signupData = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.toLowerCase().trim(),
         password,
         phone: `${countryCode}${phone}`,
-        gender,
+        gender: normalizeGender(gender),
         role,
         country,
+        countryCode: countryISO,
         university,
         region: role === "carpool" ? carpoolRegion : null,
         classSchedule: role === "carpool" ? classSchedule : [],
+        profilePicture: null,
       };
 
-      
       const response = await authAPI.register(signupData);
 
-      // Upload profile picture if provided
-      if (profilePicture) {
-        try {
-          await userAPI.uploadProfilePicture(profilePicture);
-        } catch (uploadError) {
-          console.error('Profile picture upload failed:', uploadError);
-          // Continue anyway - profile picture is optional
-        }
-      }
+      saveAuthUser(response);
 
-      // Redirect based on role
-      if (role === 'carpool') {
-        setShowVerificationMessage(true);
+      if (response.user.role === "carpool") {
+        navigateToDashboard(response.user.role, navigate);
       } else {
-        // Save form data to localStorage before navigating to questionnaire
-        localStorage.setItem('signupFormData', JSON.stringify(saveFormData()));
-        navigate('/lifestyle-questionnaire', { state: { role } });
+        navigate("/lifestyle-questionnaire", {
+          state: { role: response.user.role },
+        });
       }
     } catch (error) {
-      console.log('ℹ️ Backend not available - using local demo mode');
-      
-      // FALLBACK: Use localStorage (for demo/development without backend)
-      // Use email as userId for offline mode (backend will provide real UUID later)
-      const userId = email.toLowerCase().trim();
-      
-      // Clear old questionnaire data if re-registering with unverified account
-      const existingEmail = localStorage.getItem('userEmail');
-      const isEmailVerified = localStorage.getItem('isEmailVerified') === 'true';
-      if (existingEmail && existingEmail.toLowerCase() === userId && !isEmailVerified) {
-        // Clear old questionnaire data for this unverified user
-        localStorage.removeItem(`user_${userId}_questionnaire`);
-        localStorage.removeItem(`user_${userId}_questionnaire_completed`);
-      }
-      
-      localStorage.setItem('userId', userId);
-      localStorage.setItem('userFirstName', firstName.trim());
-      localStorage.setItem('userLastName', lastName.trim());
-      localStorage.setItem('userName', `${firstName} ${lastName}`.trim()); // Keep combined name for backward compatibility
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('userPassword', password);
-      localStorage.setItem('userRole', role);
-      localStorage.setItem('userPhone', phone);
-      localStorage.setItem('userGender', normalizeGender(gender));
-      localStorage.setItem('userCountry', country);
-      localStorage.setItem('userCountryCode', countryISO); // Save ISO code (LB, US, etc.) instead of phone code
-      localStorage.setItem('userUniversity', university);
-      localStorage.setItem('isEmailVerified', 'false');
-      // Note: questionnaireCompleted is now user-scoped and handled by storageUtils.js
-      if (profilePicturePreview) {
-        localStorage.setItem('userProfilePicture', profilePicturePreview);
-      }
-      if (role === 'carpool' && carpoolRegion) {
-        localStorage.setItem('carpoolRegion', carpoolRegion);
-        localStorage.setItem('classSchedule', JSON.stringify(classSchedule));
-      }
-
-      // Redirect based on role
-      if (role === 'carpool') {
-        setShowVerificationMessage(true);
-      } else {
-        // Save form data to localStorage before navigating to questionnaire
-        localStorage.setItem('signupFormData', JSON.stringify(saveFormData()));
-        navigate('/lifestyle-questionnaire', { state: { role } });
-      }
+      setApiError(error.message || "Signup failed. Please try again.");
+      toast.error(error.message || "Signup failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -462,70 +404,8 @@ export default function SignUp() {
           </span>
         </Link>
 
-        {showVerificationMessage ? (
-          /* Verification Email Sent Message */
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-700">
-            <div className="text-center">
-              <div className="flex justify-center mb-6">
-                <div className="bg-green-100 dark:bg-green-900/40 w-16 h-16 rounded-full flex items-center justify-center">
-                  <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
-                </div>
-              </div>
-              
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                Check Your Email!
-              </h1>
-              
-              <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  <p className="font-medium text-gray-900 dark:text-white">{email}</p>
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  We've sent a verification link to your email address
-                </p>
-              </div>
-
-              <div className="space-y-4 text-sm text-gray-600 dark:text-gray-400 mb-6">
-                <p>
-                  Please click the verification link in the email to activate your account. 
-                  The link will expire in 24 hours.
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-500">
-                  Didn't receive the email? Check your spam folder or contact support.
-                </p>
-                {/* Demo helper */}
-                <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mt-4">
-                  <p className="text-xs text-yellow-800 dark:text-yellow-300 font-medium mb-2">
-                    Demo Mode: Since no real email is sent yet
-                  </p>
-                  <Link
-                    to="/verify-email?token=demo123"
-                    className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline cursor-pointer"
-                  >
-                    Click here to simulate email verification
-                  </Link>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Link
-                  to="/login"
-                  className="block w-full bg-blue-500 dark:bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors font-medium cursor-pointer"
-                >
-                  Go to Login
-                </Link>
-                <Link
-                  to="/"
-                  className="block w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2.5 sm:py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium cursor-pointer"
-                >
-                  Back to Home
-                </Link>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Sign Up Form */
+        
+          {/* Sign Up Form */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-700">
             <div className="text-center mb-6 sm:mb-8">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -802,7 +682,8 @@ export default function SignUp() {
 
               <button
                 type="submit"
-                className="w-full bg-blue-500 dark:bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors font-medium shadow-lg shadow-blue-500/30 dark:shadow-blue-900/30 text-sm sm:text-base cursor-pointer"
+                disabled={isLoading}
+                className="w-full bg-blue-500 dark:bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors font-medium shadow-lg shadow-blue-500/30 dark:shadow-blue-900/30 text-sm sm:text-base cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Creating Account...' : 'Create Account'}
               </button>
@@ -823,7 +704,6 @@ export default function SignUp() {
               </p>
             </div>
           </div>
-        )}
       </div>
     </div>
   );

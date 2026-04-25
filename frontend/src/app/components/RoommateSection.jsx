@@ -254,7 +254,7 @@ export default function RoommateSection() {
         localStorage.setItem('activeRoommates', JSON.stringify(newRoommates));
 
         // AUTOMATIC STATUS UPDATE: If provider accepts seeker's request, update dorm to "Found Roommate"
-        if (currentUserType === 'dorm-provider') {
+        if (currentUserType === 'dorm_provider') {
           const postedDorms = JSON.parse(localStorage.getItem('postedDorms') || '[]');
           
           const updatedDorms = postedDorms.map(dorm => {
@@ -355,7 +355,7 @@ export default function RoommateSection() {
         : roommate.userId;
       
       // Get the provider's userId (could be current user or their roommate)
-      const providerUserId = currentUserType === 'dorm-provider' ? currentUserId : roommateUserId;
+      const providerUserId = currentUserType === 'dorm_provider' ? currentUserId : roommateUserId;
       
       // Update dorm status to Inactive (use posterId for backend readiness)
       const postedDorms = JSON.parse(localStorage.getItem('postedDorms') || '[]');
@@ -444,7 +444,7 @@ export default function RoommateSection() {
           </div>
           {/* DEMO MODE - DELETE WHEN INTEGRATING BACKEND - START */}
           {/* Demo Mode Button - ONLY for providers with active listings */}
-          {currentUserRole === 'dorm-provider' && (() => {
+          {currentUserRole === 'dorm_provider' && (() => {
             // Check if provider has an active listing (use posterId for backend readiness)
             const postedDorms = JSON.parse(localStorage.getItem('postedDorms') || '[]');
             const currentUserId = localStorage.getItem('userId');
@@ -512,7 +512,7 @@ export default function RoommateSection() {
                       phone: availableUser.phone,
                       country: availableUser.country,
                       gender: availableUser.gender,
-                      role: availableUser.role || 'dorm-seeker', // Add role
+                      role: availableUser.role || 'dorm_seeker', // Add role
                       profilePicture: availableUser.profilePicture
                     });
                     localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
@@ -546,7 +546,7 @@ export default function RoommateSection() {
 
         {/* Pending Requests */}
         {/* Only show for PROVIDERS - seekers don't receive requests */}
-        {currentUserRole === 'dorm-provider' && (
+        {currentUserRole === 'dorm_provider' && (
           <div className="mb-4 sm:mb-6">
             <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Pending Requests</h3>
             {pendingRequests.length > 0 ? (

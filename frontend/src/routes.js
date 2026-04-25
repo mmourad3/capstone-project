@@ -8,7 +8,6 @@ import Privacy from "./app/pages/Privacy";
 import HowItWorks from "./app/pages/HowItWorks";
 import Login from "./app/pages/Login";
 import SignUp from "./app/pages/SignUp";
-import VerifyEmail from "./app/pages/VerifyEmail";
 import ForgotPassword from "./app/pages/ForgotPassword";
 import Profile from "./app/pages/Profile";
 import LifestyleQuestionnaire from "./app/pages/LifestyleQuestionnaire";
@@ -32,7 +31,6 @@ export const router = createBrowserRouter([
       { path: "how-it-works", Component: HowItWorks },
       { path: "login", Component: Login },
       { path: "signup", Component: SignUp },
-      { path: "verify-email", Component: VerifyEmail },
       { path: "forgot-password", Component: ForgotPassword },
       { path: "profile", Component: Profile },
       { path: "profile/:userId", Component: ProfilePage }, // Unified profile - shows button based on roles

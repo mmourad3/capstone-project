@@ -53,7 +53,7 @@ export const DEMO_USERS = [
     countryCode: 'LB',
     countryISO: 'LB',
     university: 'American University of Beirut',
-    role: 'dorm-provider',
+    role: 'dorm_provider',
     verified: true,
     region: 'Hamra'
   },
@@ -68,7 +68,7 @@ export const DEMO_USERS = [
     countryCode: 'LB',
     countryISO: 'LB',
     university: 'Lebanese American University',
-    role: 'dorm-provider',
+    role: 'dorm_provider',
     verified: true,
     region: 'Mar Mikhael'
   },
@@ -83,7 +83,7 @@ export const DEMO_USERS = [
     countryCode: 'US',
     countryISO: 'US',
     university: 'Université Saint-Joseph',
-    role: 'dorm-provider',
+    role: 'dorm_provider',
     verified: true,
     region: 'Verdun'
   },
@@ -100,7 +100,7 @@ export const DEMO_USERS = [
     countryCode: 'LB',
     countryISO: 'LB',
     university: 'Lebanese American University',
-    role: 'dorm-provider',
+    role: 'dorm_provider',
     verified: true,
     region: 'Achrafieh'
   },
@@ -115,7 +115,7 @@ export const DEMO_USERS = [
     countryCode: 'LB',
     countryISO: 'LB',
     university: 'American University of Beirut',
-    role: 'dorm-provider',
+    role: 'dorm_provider',
     verified: true,
     region: 'Hamra'
   },
@@ -132,7 +132,7 @@ export const DEMO_USERS = [
     countryCode: 'GB',
     countryISO: 'GB',
     university: 'American University of Beirut',
-    role: 'dorm-seeker',
+    role: 'dorm_seeker',
     verified: true,
     region: 'Hamra'
   },
@@ -147,7 +147,7 @@ export const DEMO_USERS = [
     countryCode: 'ES',
     countryISO: 'ES',
     university: 'Lebanese American University',
-    role: 'dorm-seeker',
+    role: 'dorm_seeker',
     verified: true,
     region: 'Achrafieh'
   },
@@ -162,7 +162,7 @@ export const DEMO_USERS = [
     countryCode: 'LB',
     countryISO: 'LB',
     university: 'American University of Beirut',
-    role: 'dorm-seeker',
+    role: 'dorm_seeker',
     verified: true,
     region: 'Hamra'
   },
@@ -177,7 +177,7 @@ export const DEMO_USERS = [
     countryCode: 'KR',
     countryISO: 'KR',
     university: 'Université Saint-Joseph',
-    role: 'dorm-seeker',
+    role: 'dorm_seeker',
     verified: true,
     region: 'Verdun'
   },
@@ -192,7 +192,7 @@ export const DEMO_USERS = [
     countryCode: 'FR',
     countryISO: 'FR',
     university: 'Université Saint-Joseph',
-    role: 'dorm-seeker',
+    role: 'dorm_seeker',
     verified: true,
     region: 'Mar Mikhael'
   },
@@ -1412,7 +1412,7 @@ export function initializeDormDemoData(mockListings) {
     name: listing.posterName,
     gender: listing.posterGender,
     profilePicture: listing.posterProfilePic,
-    role: 'dorm-provider',
+    role: 'dorm_provider',
     phone: listing.posterPhone
   }));
   localStorage.setItem('demoUsers', JSON.stringify(demoUsers));

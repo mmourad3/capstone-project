@@ -2,8 +2,8 @@
  * Dorm Seeker Dashboard
  * Allows students to browse and filter available dorm listings
  * 
- * ROLE RESTRICTION: Only 'dorm-seeker' role users can access this dashboard.
- * Dorm-providers and carpool users are redirected to their respective dashboards.
+ * ROLE RESTRICTION: Only 'dorm_seeker' role users can access this dashboard.
+ * Dorm_providers and carpool users are redirected to their respective dashboards.
  * Updated: Fixed imports to use correct file paths
  */
 
@@ -30,8 +30,8 @@ export default function DormSeekerDashboard() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
-  // Role protection hook - blocks non-dorm-seeker users
-  useRoleProtection('dorm-seeker');
+  // Role protection hook - blocks non-dorm_seeker users
+  useRoleProtection('dorm_seeker');
   
   // Get user data from centralized hook
   const userData = useUserData();
@@ -290,7 +290,7 @@ export default function DormSeekerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <DashboardNav userName={userName} userType="dorm-seeker" />
+      <DashboardNav userName={userName} userType="dorm_seeker" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}

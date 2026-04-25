@@ -45,8 +45,8 @@ export function useRoleProtection(requiredRole, options = {}) {
  */
 function getRoleDisplayName(role) {
   const roleNames = {
-    'dorm-seeker': 'dorm seekers',
-    'dorm-provider': 'dorm providers',
+    'dorm_seeker': 'dorm seekers',
+    'dorm_provider': 'dorm providers',
     'carpool': 'carpool users'
   };
   return roleNames[role] || 'authorized users';
@@ -57,8 +57,8 @@ function getRoleDisplayName(role) {
  */
 function getDashboardPath(role) {
   const paths = {
-    'dorm-seeker': '/dashboard/dorm-seeker',
-    'dorm-provider': '/dashboard/dorm-provider',
+    'dorm_seeker': '/dashboard/dorm-seeker',
+    'dorm_provider': '/dashboard/dorm-provider',
     'carpool': '/dashboard/carpool'
   };
   return paths[role] || '/';

@@ -9,7 +9,7 @@ export const initializeDemoUsers = () => {
       phone: '+9611234567',
       country: 'Lebanon',
       gender: 'female',
-      role: 'dorm-seeker',
+      role: 'dorm_seeker',
       questionnaire: {
         sleepSchedule: 'Early Bird',
         wakeUpTime: '6-7 AM',
@@ -41,7 +41,7 @@ export const initializeDemoUsers = () => {
       phone: '+9611234568',
       country: 'Lebanon',
       gender: 'female',
-      role: 'dorm-seeker',
+      role: 'dorm_seeker',
       questionnaire: {
         sleepSchedule: 'Night Owl',
         wakeUpTime: '9-10 AM',
@@ -73,7 +73,7 @@ export const initializeDemoUsers = () => {
       phone: '+9611234569',
       country: 'United States',
       gender: 'male',
-      role: 'dorm-seeker',
+      role: 'dorm_seeker',
       questionnaire: {
         sleepSchedule: 'Early Bird',
         wakeUpTime: 'Before 6 AM',
@@ -105,7 +105,7 @@ export const initializeDemoUsers = () => {
       phone: '+9611234570',
       country: 'Lebanon',
       gender: 'female',
-      role: 'dorm-seeker',
+      role: 'dorm_seeker',
       questionnaire: {
         sleepSchedule: 'Balanced',
         wakeUpTime: '7-8 AM',
@@ -137,7 +137,7 @@ export const initializeDemoUsers = () => {
       phone: '+9611234571',
       country: 'South Korea',
       gender: 'male',
-      role: 'dorm-seeker',
+      role: 'dorm_seeker',
       questionnaire: {
         sleepSchedule: 'Night Owl',
         wakeUpTime: 'After 10 AM',

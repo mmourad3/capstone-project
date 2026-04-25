@@ -21,8 +21,8 @@ import { availableAmenities } from "../constants/amenities";
  * Dorm Provider Dashboard
  * Allows students to post and manage their dorm listings
  * 
- * ROLE RESTRICTION: Only 'dorm-provider' role users can access this dashboard.
- * Dorm-seekers and carpool users are redirected to their respective dashboards.
+ * ROLE RESTRICTION: Only 'dorm_provider' role users can access this dashboard.
+ * Dorm_seekers and carpool users are redirected to their respective dashboards.
  */
 
 // No demo data - users start with empty state
@@ -31,8 +31,8 @@ const mockPostedDorms = [];
 export default function DormProviderDashboard() {
   const navigate = useNavigate();
   
-  // Role protection hook - blocks non-dorm-provider users
-  useRoleProtection('dorm-provider');
+  // Role protection hook - blocks non-dorm_provider users
+  useRoleProtection('dorm_provider');
   
   // Get user data from centralized hook
   const userData = useUserData();
@@ -410,7 +410,7 @@ export default function DormProviderDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-      <DashboardNav userName={userName} userType="dorm-provider" />
+      <DashboardNav userName={userName} userType="dorm_provider" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}

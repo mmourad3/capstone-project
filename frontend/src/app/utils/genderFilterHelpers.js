@@ -12,11 +12,11 @@ import { DEMO_USERS } from '../data/demoData';
  * Filter demo users for dorm requests based on gender preference
  * @param {string} genderPreference - "any"/"Any" or "same"/"Same" 
  * @param {string} providerGender - Provider's gender ("Male" or "Female")
- * @returns {Array} Filtered array of dorm-seeker users
+ * @returns {Array} Filtered array of dorm_seeker users
  */
 export const filterDormSeekersByGender = (genderPreference, providerGender) => {
   // Get all dorm seekers
-  const dormSeekers = DEMO_USERS.filter(user => user.role === 'dorm-seeker');
+  const dormSeekers = DEMO_USERS.filter(user => user.role === 'dorm_seeker');
   
   // Normalize preference to lowercase
   const normalizedPref = (genderPreference || 'any').toLowerCase();

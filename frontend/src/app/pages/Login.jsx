@@ -1,9 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { ArrowLeft, MapPin, GraduationCap, Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
+import {
+  ArrowLeft,
+  MapPin,
+  GraduationCap,
+  AlertCircle,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { authAPI } from "../services/api";
 import { toast } from "react-toastify";
+import { saveAuthUser } from "../utils/authStorage";
 import { navigateToDashboard } from "../utils/navigationHelpers";
+import { isValidUniversityEmail } from "../config/universityConfig";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -11,57 +20,14 @@ export default function Login() {
     // Load remembered email if exists
     return localStorage.getItem('rememberedEmail') || "";
   });
-  const [password, setPassword] = useState(() => {
-    // Load remembered password if exists
-    return localStorage.getItem('rememberedPassword') || "";
-  });
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(() => {
-    // Check if credentials are saved
-    return !!(localStorage.getItem('rememberedEmail') && localStorage.getItem('rememberedPassword'));
+    return !!localStorage.getItem("rememberedEmail");
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Validate university email format
-  const validateUniversityEmail = (emailValue) => {
-    const emailLower = emailValue.toLowerCase().trim();
-    
-    // List of allowed university email domains
-    const allowedDomains = [
-      // Lebanese Universities
-      '.edu.lb',              // All Lebanese universities with .edu.lb
-      '@aub.edu.lb',          // American University of Beirut (AUB)
-      '@lau.edu',             // Lebanese American University (LAU) - NO .lb suffix!
-      '@lau.edu.lb',          // LAU alternative domain (some staff/alumni)
-      '@usj.edu.lb',          // Université Saint-Joseph (USJ)
-      '@ul.edu.lb',           // Lebanese University
-      '@std.balamand.edu.lb', // University of Balamand
-      '@ndu.edu.lb',          // Notre Dame University - Louaize (NDU)
-      '@haigazian.edu.lb',    // Haigazian University
-      '@jinan.edu.lb',        // Jinan University
-      '@aust.edu.lb',         // American University of Science and Technology
-      '@bau.edu.lb',          // Beirut Arab University
-      '@liu.edu.lb',          // Lebanese International University
-      '@mubs.edu.lb',         // Modern University for Business and Science
-      '@rhu.edu.lb',          // Rafik Hariri University
-      '@gu.edu.lb',           // Global University
-      '@mu.edu.lb',           // Al Maaref University
-      '@arts.edu.lb',         // Lebanese Academy of Fine Arts (ALBA)
-      
-      // International universities (optional)
-      '.edu',        // US universities
-      '.ac.uk',      // UK universities  
-      '.edu.au',     // Australian universities
-      '.ac.nz',      // New Zealand universities
-      '.edu.sg',     // Singapore universities
-      '.ac.in',      // Indian universities
-      '.edu.pk',     // Pakistani universities
-    ];
-    
-    // Check if email ends with any allowed domain
-    return allowedDomains.some(domain => emailLower.endsWith(domain));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,86 +35,34 @@ export default function Login() {
     setIsLoading(true);
     
     // Validate university email
-    if (!validateUniversityEmail(email)) {
+    if (!isValidUniversityEmail(email)) {
       setError("Please use a valid university email address (.edu, .edu.lb, etc.)");
       setIsLoading(false);
       return;
     }
     
     try {
-      // Try API first
       const response = await authAPI.login({ 
         email: email.toLowerCase().trim(), 
         password 
       });
+      saveAuthUser(response);
 
       // Handle Remember Me functionality
       if (rememberMe) {
         localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
       } else {
         localStorage.removeItem('rememberedEmail');
-        localStorage.removeItem('rememberedPassword');
       }
 
       // Navigate based on role
-      const userRole = response.user.role;
       toast.success(`Welcome back! Logged in successfully.`, {
         position: "top-right",
         autoClose: 3000,
       });
-      navigateToDashboard(userRole, navigate);
+      navigateToDashboard(response.user.role, navigate);    
     } catch (err) {
-      console.log('ℹ️ Backend not available - using local demo mode');
-      
-      // FALLBACK: Use localStorage (for demo/development without backend)
-      const storedEmail = localStorage.getItem('userEmail');
-      const storedPassword = localStorage.getItem('userPassword');
-      const storedRole = localStorage.getItem('userRole');
-      const isVerified = localStorage.getItem('isEmailVerified') === 'true';
-
-      if (!storedEmail || !storedPassword) {
-        setError("No account found. Please sign up first.");
-        setIsLoading(false);
-        return;
-      }
-
-      if (email.toLowerCase().trim() !== storedEmail) {
-        setError("Invalid email or password");
-        setIsLoading(false);
-        return;
-      }
-
-      if (password !== storedPassword) {
-        setError("Invalid email or password");
-        setIsLoading(false);
-        return;
-      }
-
-      if (!isVerified) {
-        setError("Please verify your email before logging in. Check your inbox.");
-        setIsLoading(false);
-        return;
-      }
-
-      // Set userId for offline mode (use email as identifier)
-      localStorage.setItem('userId', email.toLowerCase().trim());
-      
-      // Handle Remember Me functionality
-      if (rememberMe) {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
-      } else {
-        localStorage.removeItem('rememberedEmail');
-        localStorage.removeItem('rememberedPassword');
-      }
-
-      // Login successful - navigate based on role
-      toast.success(`Welcome back! Logged in successfully.`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      navigateToDashboard(storedRole, navigate);
+      setError(err.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }

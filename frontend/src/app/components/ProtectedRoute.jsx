@@ -26,9 +26,9 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
     const userRole = user.role || localStorage.getItem('userRole');
     if (!allowedRoles.includes(userRole)) {
       // Redirect to appropriate dashboard based on user's actual role
-      if (userRole === 'dorm-seeker') {
+      if (userRole === 'dorm_seeker') {
         return <Navigate to="/dashboard/dorm-seeker" replace />;
-      } else if (userRole === 'dorm-provider') {
+      } else if (userRole === 'dorm_provider') {
         return <Navigate to="/dashboard/dorm-provider" replace />;
       } else if (userRole === 'carpool') {
         return <Navigate to="/dashboard/carpool" replace />;

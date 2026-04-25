@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  
 }
 
 
@@ -17,21 +18,21 @@ model User {
   password          String
   firstName         String
   lastName          String
-  role              Role    // "dorm-seeker", "dorm-provider", "carpool"
+  role              Role    
   
   university        String
   gender            String
   phone             String @unique
   country           String
+  countryCode    String?
   profilePicture    String?
   region            String? // For carpool users
-  
-  // emailVerified     Boolean   @default(false)
-  // verificationToken String?
+
   // resetToken        String?
   // resetTokenExpiry  DateTime?
   
   createdAt         DateTime  @default(now())
+  updatedAt DateTime @updatedAt
   
   // Relations
   questionnaire     Questionnaire?
@@ -129,7 +130,6 @@ model ClassScheduleBlock {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  courseName  String?
   days        String   @db.Text // JSON array: ["monday", "wednesday"]
   startTime   String
   endTime     String

@@ -1,11 +1,13 @@
-import { UserModel } from "../models/user.model.js";
+import { UserModel } from "../models/UserModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+const JWT_SECRET = process.env.JWT_CODE || "dev_secret";
+
 /**
- * CREATE USER (SIGNUP / REGISTER)
+ * SIGNUP / REGISTER
  */
-export const createUser = async (req, res) => {
+export const register = async (req, res) => {
   try {
     const {
       firstName,
@@ -16,43 +18,58 @@ export const createUser = async (req, res) => {
       gender,
       role,
       country,
+      countryCode,
       university,
       region,
+      classSchedule,
+      profilePicture,
     } = req.body;
 
-    // 1. check if user already exists
-    const existingUser = await UserModel.findByEmail(email);
+    const normalizedEmail = email.toLowerCase().trim();
 
-    if (existingUser) {
-      return res.status(400).json({ error: "Email already exists" });
+    const existingEmail = await UserModel.findByEmail(normalizedEmail);
+    if (existingEmail) {
+      return res.status(400).json({ message: "Email already registered" });
     }
 
-    // 2. hash password
+    const existingPhone = await UserModel.findByPhone(phone);
+    if (existingPhone) {
+      return res
+        .status(400)
+        .json({ message: "Phone number already registered" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 3. create user
     const user = await UserModel.create({
       firstName,
       lastName,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       phone,
       gender,
       role,
       country,
+      countryCode,
       university,
       region: region || null,
+      profilePicture: profilePicture || null,
     });
 
-    // 4. create JWT token
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_CODE,
-      { expiresIn: "1d" },
-    );
+    let savedSchedule = [];
 
-    // 5. response (IMPORTANT: do NOT send password)
-    res.status(201).json({
+    if (role === "carpool" && Array.isArray(classSchedule)) {
+      savedSchedule = await UserModel.createScheduleBlocks(
+        user.id,
+        classSchedule,
+      );
+    }
+
+    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    return res.status(201).json({
       token,
       user: {
         id: user.id,
@@ -60,10 +77,120 @@ export const createUser = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        phone: user.phone,
+        gender: user.gender,
+        country: user.country,
+        countryCode: user.countryCode,
+        university: user.university,
+        region: user.region,
+        profilePicture: user.profilePicture,
+        classSchedule: savedSchedule,
       },
     });
   } catch (err) {
-    res.status(500).json({ error: "Signup failed" });
+    console.error("Signup error:", err);
+    return res.status(500).json({ message: "Signup failed" });
+  }
+};
+
+/**
+ * LOGIN
+ */
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await UserModel.findByEmail(normalizedEmail);
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const passwordMatches = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatches) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const classSchedule =
+      user.role === "carpool"
+        ? await UserModel.findScheduleByUserId(user.id)
+        : [];
+
+    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    return res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        phone: user.phone,
+        gender: user.gender,
+        country: user.country,
+        countryCode: user.countryCode,
+        university: user.university,
+        region: user.region,
+        profilePicture: user.profilePicture,
+        classSchedule,
+      },
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    return res.status(500).json({ message: "Login failed" });
+  }
+};
+
+/**
+ * CHECK EMAIL EXISTS
+ */
+export const checkEmailExists = async (req, res) => {
+  try {
+    const email = req.query.email?.toLowerCase().trim();
+
+    if (!email) {
+      return res
+        .status(400)
+        .json({ exists: false, message: "Email is required" });
+    }
+
+    const user = await UserModel.findByEmail(email);
+
+    return res.json({ exists: !!user });
+  } catch (err) {
+    console.error("Check email error:", err);
+    return res
+      .status(500)
+      .json({ exists: false, message: "Email check failed" });
+  }
+};
+
+/**
+ * CHECK PHONE EXISTS
+ */
+export const checkPhoneExists = async (req, res) => {
+  try {
+    const phone = req.query.phone;
+
+    if (!phone) {
+      return res
+        .status(400)
+        .json({ exists: false, message: "Phone is required" });
+    }
+
+    const user = await UserModel.findByPhone(phone);
+
+    return res.json({ exists: !!user });
+  } catch (err) {
+    console.error("Check phone error:", err);
+    return res
+      .status(500)
+      .json({ exists: false, message: "Phone check failed" });
   }
 };
 
@@ -79,25 +206,45 @@ export const getUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    const classSchedule =
+      user.role === "carpool"
+        ? await UserModel.findScheduleByUserId(user.id)
+        : [];
 
-    res.json(user);
+    const { password, ...safeUser } = user;
+
+
+    return res.json({
+      ...safeUser,
+      classSchedule,
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
 /**
- * GET CURRENT USER (LOGGED IN)
+ * GET CURRENT USER
  */
 export const getMe = async (req, res) => {
   try {
     const user = await UserModel.findById(req.user.id);
-    res.json(user);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const classSchedule =
+      user.role === "carpool"
+        ? await UserModel.findScheduleByUserId(user.id)
+        : [];
+
+      const { password, ...safeUser } = user;
+    return res.json({...safeUser,classSchedule,});
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
-
 
 /**
  * UPDATE USER PROFILE
@@ -105,9 +252,13 @@ export const getMe = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const updatedUser = await UserModel.update(req.user.id, req.body);
-    res.json(updatedUser);
+
+    return res.json({
+      ...updatedUser,
+      password: undefined,
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -120,8 +271,21 @@ export const deleteUser = async (req, res) => {
 
     await UserModel.delete(id);
 
-    res.json({ message: "User deleted successfully" });
+    return res.json({ message: "User deleted successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ message: err.message });
+  }
+};
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await UserModel.findAll();
+
+    // Remove passwords before sending
+    const safeUsers = users.map(({ password, ...user }) => user);
+
+    res.json(safeUsers);
+  } catch (err) {
+    console.error("Get users error:", err);
+    res.status(500).json({ message: "Failed to fetch users" });
   }
 };

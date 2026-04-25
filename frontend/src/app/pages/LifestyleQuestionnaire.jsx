@@ -31,10 +31,6 @@ export default function LifestyleQuestionnaire() {
   
   // Check if questionnaire is already completed on mount
   // Only show verification message if NOT editing from profile
-  const [showVerificationMessage, setShowVerificationMessage] = useState(() => {
-    if (isEditingFromProfile) return false; // Don't show verification if editing
-    return hasCompletedQuestionnaire();
-  });
   
   // Load existing questionnaire data if available (user-scoped)
   const loadExistingData = () => {
@@ -145,8 +141,7 @@ export default function LifestyleQuestionnaire() {
     } else {
       // Show success toast for new questionnaire completion
       toast.success('Questionnaire completed successfully!');
-      // For now, show verification message immediately
-      setShowVerificationMessage(true);
+      navigateToDashboard(role, navigate);
     }
   };
 
@@ -172,85 +167,7 @@ export default function LifestyleQuestionnaire() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 py-8 sm:py-12 px-4">
       <div className="max-w-3xl mx-auto">
-        {showVerificationMessage ? (
-          /* Email Verification Message - Shown AFTER Questionnaire Completion */
-          <div>
-            {/* Back to Home Button */}
-            <div className="mb-4">
-              <Link 
-                to="/" 
-                className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm sm:text-base cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Home
-              </Link>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-700">
-              <div className="text-center">
-                <div className="flex justify-center mb-6">
-                  <div className="bg-green-100 dark:bg-green-900/30 w-16 h-16 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
-                  </div>
-                </div>
-                
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                  Questionnaire Complete!
-                </h1>
-                
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Thank you for completing the lifestyle questionnaire. Your responses have been saved.
-                </p>
-
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    <p className="font-medium text-gray-900 dark:text-white">{localStorage.getItem('userEmail')}</p>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    We've sent a verification link to your email address
-                  </p>
-                </div>
-
-                <div className="space-y-4 text-sm text-gray-600 dark:text-gray-400 mb-6">
-                  <p>
-                    Please click the verification link in the email to activate your account. 
-                    The link will expire in 24 hours.
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
-                    Didn't receive the email? Check your spam folder or contact support.
-                  </p>
-                  {/* Demo helper */}
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mt-4">
-                    <p className="text-xs text-yellow-800 dark:text-yellow-400 font-medium mb-2">Demo Mode: Since no real email is sent yet</p>
-                    <Link
-                      to="/verify-email?token=demo123"
-                      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline cursor-pointer"
-                    >
-                      Click here to simulate email verification
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <Link
-                    to="/login"
-                    className="block w-full bg-blue-500 dark:bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors font-medium cursor-pointer"
-                  >
-                    Go to Login
-                  </Link>
-                  <Link
-                    to="/"
-                    className="block w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2.5 sm:py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium cursor-pointer"
-                  >
-                    Back to Home
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Questionnaire Form */
+                  /* Questionnaire Form */
           <div>
         {/* Back to Home Button */}
         <div className="mb-4">
@@ -998,7 +915,7 @@ export default function LifestyleQuestionnaire() {
           </p>
         </div>
       </div>
-        )}
+        
       </div>
     </div>
   );

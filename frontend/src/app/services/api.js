@@ -26,12 +26,12 @@ export const authAPI = {
   },
 
   checkEmailExists: async (email) => {
-    const res = await fetch(`${API_BASE}/auth/check-email?email=${email}`);
+    const res = await fetch(`${API_BASE}/auth/check-email?email=${encodeURIComponent(email)}`);
     return res.json();
   },
 
   checkPhoneExists: async (phone) => {
-    const res = await fetch(`${API_BASE}/auth/check-phone?phone=${phone}`);
+    const res = await fetch(`${API_BASE}/auth/check-phone?phone=${encodeURIComponent(phone)}`);
     return res.json();
   },
 };
@@ -93,10 +93,10 @@ export const userAPI = {
 //   },
 // };
 
-// // All other API modules return empty objects (not used)
-// export const userAPI = {};
-// export const questionnaireAPI = {};
-// export const dormAPI = {};
-// export const carpoolAPI = {};
-// export const messageAPI = {};
-// export const roommateAPI = {};
+// All other API modules return empty objects (not used)
+
+export const questionnaireAPI = {};
+export const dormAPI = {};
+export const carpoolAPI = {};
+export const messageAPI = {};
+export const roommateAPI = {};

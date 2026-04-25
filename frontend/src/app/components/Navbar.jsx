@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router";
 import { GraduationCap, MapPin, Menu, X } from "lucide-react";
 import { useState } from "react";
-import { RedirectToDashboard } from "./RedirectToDashboard";
+import  RedirectToDashboard  from "./DashboardLogoButton";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function Navbar({ isLoggedIn = false, userType = null }) {
@@ -13,8 +13,8 @@ export function Navbar({ isLoggedIn = false, userType = null }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <RedirectToDashboard 
-            isLoggedIn={isLoggedIn} 
+          <RedirectToDashboard
+            isLoggedIn={isLoggedIn}
             userType={userType}
             className="flex items-center gap-2 group cursor-pointer bg-transparent border-0"
           >
@@ -35,7 +35,9 @@ export function Navbar({ isLoggedIn = false, userType = null }) {
                 <Link
                   to="/"
                   className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer ${
-                    location.pathname === "/" ? "text-blue-600 dark:text-blue-400 font-medium" : ""
+                    location.pathname === "/"
+                      ? "text-blue-600 dark:text-blue-400 font-medium"
+                      : ""
                   }`}
                 >
                   Home
@@ -43,7 +45,9 @@ export function Navbar({ isLoggedIn = false, userType = null }) {
                 <Link
                   to="/about"
                   className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer ${
-                    location.pathname === "/about" ? "text-blue-600 dark:text-blue-400 font-medium" : ""
+                    location.pathname === "/about"
+                      ? "text-blue-600 dark:text-blue-400 font-medium"
+                      : ""
                   }`}
                 >
                   About
@@ -51,7 +55,9 @@ export function Navbar({ isLoggedIn = false, userType = null }) {
                 <Link
                   to="/how-it-works"
                   className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer ${
-                    location.pathname === "/how-it-works" ? "text-blue-600 dark:text-blue-400 font-medium" : ""
+                    location.pathname === "/how-it-works"
+                      ? "text-blue-600 dark:text-blue-400 font-medium"
+                      : ""
                   }`}
                 >
                   How It Works
@@ -59,7 +65,9 @@ export function Navbar({ isLoggedIn = false, userType = null }) {
                 <Link
                   to="/login"
                   className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer ${
-                    location.pathname === "/login" ? "text-blue-600 dark:text-blue-400 font-medium" : ""
+                    location.pathname === "/login"
+                      ? "text-blue-600 dark:text-blue-400 font-medium"
+                      : ""
                   }`}
                 >
                   Login
@@ -79,7 +87,11 @@ export function Navbar({ isLoggedIn = false, userType = null }) {
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   className="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                 >
-                  {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                  {mobileMenuOpen ? (
+                    <X className="w-6 h-6" />
+                  ) : (
+                    <Menu className="w-6 h-6" />
+                  )}
                 </button>
               </div>
             </>
@@ -94,7 +106,9 @@ export function Navbar({ isLoggedIn = false, userType = null }) {
                 to="/"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors px-2 py-2 rounded cursor-pointer ${
-                  location.pathname === "/" ? "text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/30" : ""
+                  location.pathname === "/"
+                    ? "text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/30"
+                    : ""
                 }`}
               >
                 Home
@@ -103,7 +117,9 @@ export function Navbar({ isLoggedIn = false, userType = null }) {
                 to="/about"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors px-2 py-2 rounded cursor-pointer ${
-                  location.pathname === "/about" ? "text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/30" : ""
+                  location.pathname === "/about"
+                    ? "text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/30"
+                    : ""
                 }`}
               >
                 About
@@ -112,7 +128,9 @@ export function Navbar({ isLoggedIn = false, userType = null }) {
                 to="/how-it-works"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors px-2 py-2 rounded cursor-pointer ${
-                  location.pathname === "/how-it-works" ? "text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/30" : ""
+                  location.pathname === "/how-it-works"
+                    ? "text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/30"
+                    : ""
                 }`}
               >
                 How It Works
@@ -121,7 +139,9 @@ export function Navbar({ isLoggedIn = false, userType = null }) {
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors px-2 py-2 rounded cursor-pointer ${
-                  location.pathname === "/login" ? "text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/30" : ""
+                  location.pathname === "/login"
+                    ? "text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/30"
+                    : ""
                 }`}
               >
                 Login

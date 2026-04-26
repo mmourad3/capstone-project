@@ -43,7 +43,9 @@ export const chatWithGemini = async (req, res) => {
     }
 
     if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ message: "GEMINI_API_KEY is missing" });
+      return res.json({
+        response: "Chatbot is not configured. Please add GEMINI_API_KEY in .env.",
+      });
     }
 
     const ai = new GoogleGenAI({

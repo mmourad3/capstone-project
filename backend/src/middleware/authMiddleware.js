@@ -11,9 +11,17 @@ export const protect = (req, res, next) => {
 
   try {
     const token = authHeader.split(" ")[1];
-    req.user = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    req.user = {
+      id: decoded.id,
+      role: decoded.role,
+    };
+
     next();
-  } catch {
+  } catch (err) {
+    console.log("JWT ERROR:", err.message);
+    console.log("AUTH HEADER:", authHeader);
     return res.status(401).json({ message: "Invalid token" });
   }
 };

@@ -24,18 +24,28 @@ import { navigateToDashboard } from "../utils/navigationHelpers";
 import { saveAuthUser } from "../utils/authStorage";
 
 const groupedUniversities = getGroupedUniversities();
+const isPhoneValid = (phoneValue, countryValue) => {
+  if (!phoneValue || !countryValue) return false;
 
-// Helper to check if phone is valid
-const isPhoneValid = () => true; // Will be replaced by actual validation
+  const digitsOnly = phoneValue.replace(/\D/g, "");
+  const selectedCountry = countries.find((c) => c.name === countryValue);
+
+  if (!selectedCountry) return false;
+
+  return (
+    digitsOnly.length >= selectedCountry.minDigits &&
+    digitsOnly.length <= selectedCountry.maxDigits
+  );
+};
 
 export default function SignUp() {
   const navigate = useNavigate();
-  
+
   // Refs for scrolling to errors
   const emailRef = useRef(null);
   const universityRef = useRef(null);
   const phoneRef = useRef(null);
-  
+
   // Initialize state variables
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -64,7 +74,13 @@ export default function SignUp() {
   const [classSchedule, setClassSchedule] = useState([]);
 
   // Schedule management helpers (imported from utils)
-  const { addScheduleBlock, removeScheduleBlock, toggleDayInBlock, updateBlockTime, isDayUsedElsewhere } = createScheduleHelpers(classSchedule, setClassSchedule);
+  const {
+    addScheduleBlock,
+    removeScheduleBlock,
+    toggleDayInBlock,
+    updateBlockTime,
+    isDayUsedElsewhere,
+  } = createScheduleHelpers(classSchedule, setClassSchedule);
 
   // Function to save current form state
   const saveFormData = () => {
@@ -81,16 +97,16 @@ export default function SignUp() {
       university,
       profilePicturePreview,
       carpoolRegion,
-      classSchedule
+      classSchedule,
     };
   };
 
   // Validate university email format (using imported config)
   const validateUniversityEmail = (emailValue) => {
     if (!emailValue) return false;
-    
+
     const isValid = isValidUniversityEmail(emailValue);
-    
+
     if (!isValid) {
       setEmailError("Please use a valid university email address");
       return false;
@@ -107,10 +123,10 @@ export default function SignUp() {
   const handleEmailChange = (e) => {
     const emailValue = e.target.value;
     setEmail(emailValue);
-    
+
     // Reset email exists flag when email changes
     setEmailExistsInDB(false);
-    
+
     validateUniversityEmail(emailValue);
   };
 
@@ -127,7 +143,8 @@ export default function SignUp() {
     setExistsFlag: setEmailExistsInDB,
     setIsChecking: setIsCheckingEmail,
     isValid: isEmailValid,
-    errorMessage: 'This email is already registered. Please login or use a different email.',
+    errorMessage:
+      "This email is already registered. Please login or use a different email.",
   });
 
   const checkPhoneExists = createExistenceChecker({
@@ -135,14 +152,22 @@ export default function SignUp() {
     setError: setPhoneError,
     setExistsFlag: setPhoneExistsInDB,
     setIsChecking: setIsCheckingPhone,
-    isValid: isPhoneValid,
-    errorMessage: 'This phone number is already registered. Please use a different phone number.',
+    isValid: () => isPhoneValid(phone, country),
+    errorMessage:
+      "This phone number is already registered. Please use a different phone number.",
   });
 
   // Check email exists when user leaves the email field
   const handleEmailBlur = () => {
     if (email && isEmailValid()) {
       checkEmailExists(email.toLowerCase().trim());
+    }
+  };
+
+  // Handle phone blur to check existence
+  const handlePhoneBlur = () => {
+    if (phone && isPhoneValid(phone, country)) {
+      checkPhoneExists(`${countryCode}${phone}`);
     }
   };
 
@@ -159,16 +184,22 @@ export default function SignUp() {
     }
 
     const emailLower = email.toLowerCase().trim();
-    
+
     // Check if email matches any major university domain (using imported config)
-    for (const [domain, expectedUniversity] of Object.entries(EMAIL_UNIVERSITY_MAP)) {
+    for (const [domain, expectedUniversity] of Object.entries(
+      EMAIL_UNIVERSITY_MAP,
+    )) {
       if (emailLower.endsWith(domain)) {
         // For universities with multiple campuses, accept any campus variant
         // e.g., "Lebanese American University (LAU) - Beirut" or "Lebanese American University (LAU) - Byblos"
-        const isMatch = university === expectedUniversity || university.startsWith(expectedUniversity);
-        
+        const isMatch =
+          university === expectedUniversity ||
+          university.startsWith(expectedUniversity);
+
         if (!isMatch) {
-          setUniversityError(`Your email belongs to ${expectedUniversity}. Please select the correct university.`);
+          setUniversityError(
+            `Your email belongs to ${expectedUniversity}. Please select the correct university.`,
+          );
           return false;
         }
       }
@@ -188,12 +219,14 @@ export default function SignUp() {
   const handleCountryChange = (e) => {
     const selectedCountryName = e.target.value;
     setCountry(selectedCountryName);
-    
-    const selectedCountry = countries.find(c => c.name === selectedCountryName);
+
+    const selectedCountry = countries.find(
+      (c) => c.name === selectedCountryName,
+    );
     if (selectedCountry) {
       setCountryCode(selectedCountry.code); // Phone code for display
-      setCountryISO(selectedCountry.iso);   // ISO code for geocoding
-      setPhone(''); // Clear phone when country changes
+      setCountryISO(selectedCountry.iso); // ISO code for geocoding
+      setPhone(""); // Clear phone when country changes
     }
   };
 
@@ -202,8 +235,8 @@ export default function SignUp() {
     const value = e.target.value;
     // Allow only numbers and common phone symbols
     const phoneRegex = /^[0-9\s\-\(\)]*$/;
-    
-    if (phoneRegex.test(value) || value === '') {
+
+    if (phoneRegex.test(value) || value === "") {
       setPhone(value);
       validatePhoneNumber(value);
     }
@@ -217,9 +250,9 @@ export default function SignUp() {
     }
 
     // Remove all non-digit characters to count actual digits
-    const digitsOnly = phoneValue.replace(/\D/g, '');
-    
-    const selectedCountry = countries.find(c => c.name === country);
+    const digitsOnly = phoneValue.replace(/\D/g, "");
+
+    const selectedCountry = countries.find((c) => c.name === country);
     if (!selectedCountry) {
       setPhoneError("");
       return true;
@@ -242,22 +275,15 @@ export default function SignUp() {
     return true;
   };
 
-  // Handle phone blur to check existence
-  const handlePhoneBlur = () => {
-    if (phone && isPhoneValid()) {
-      checkPhoneExists(phone);
-    }
-  };
-
   // Handle password change
   const handlePasswordChange = (e) => {
     const passwordValue = e.target.value;
     setPassword(passwordValue);
-    
+
     if (passwordValue) {
       const validation = validatePassword(passwordValue);
       const allRequirementsMet = Object.values(validation).every(Boolean);
-      
+
       if (!allRequirementsMet) {
         const errorMessage = getPasswordErrorMessage(validation);
         setPasswordError(errorMessage);
@@ -287,42 +313,47 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setApiError("");
-    
+
     // Run validations (email check already done in real-time!)
     const isEmailValidResult = validateUniversityEmail(email);
     const isUniversityValid = validateUniversityMatch();
     const isPhoneValidResult = validatePhoneNumber(phone);
-    
+
     // Check if password meets all requirements
     const passwordValidationResult = validatePassword(password);
-    const allPasswordRequirementsMet = Object.values(passwordValidationResult).every(Boolean);
-    
+    const allPasswordRequirementsMet = Object.values(
+      passwordValidationResult,
+    ).every(Boolean);
+
     if (!allPasswordRequirementsMet) {
       const errorMessage = getPasswordErrorMessage(passwordValidationResult);
       toast.error(errorMessage);
       return;
     }
-    
+
     // Find the first error and scroll to it (instant - no async!)
     if (!isEmailValidResult || emailExistsInDB) {
-      emailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      emailRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    
+
     if (!isUniversityValid) {
-      universityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      universityRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
       return;
     }
-    
+
     if (!isPhoneValidResult || phoneExistsInDB) {
-      phoneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      phoneRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
     // Validate class schedule for carpool users
-    if (role === 'carpool') {
+    if (role === "carpool") {
       if (classSchedule.length === 0) {
-        toast.error('Please add at least one class schedule block');
+        toast.error("Please add at least one class schedule block");
         return;
       }
 
@@ -334,15 +365,17 @@ export default function SignUp() {
           return;
         }
         if (!block.startTime || !block.endTime) {
-          toast.error(`Schedule #${i + 1}: Please set both start and end times`);
+          toast.error(
+            `Schedule #${i + 1}: Please set both start and end times`,
+          );
           return;
         }
       }
     }
-    
+
     // All validations passed - proceed with signup
     setIsLoading(true);
-    
+
     try {
       const signupData = {
         firstName: firstName.trim(),
@@ -383,8 +416,8 @@ export default function SignUp() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4 py-8 sm:py-12">
       {/* Back to Home Button */}
       <div className="absolute top-3 sm:top-8 left-4 sm:left-8">
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm sm:text-base cursor-pointer mb-6 sm:mb-0"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -394,7 +427,10 @@ export default function SignUp() {
 
       <div className="w-full max-w-md">
         {/* Logo */}
-        <Link to="/" className="flex items-center justify-center gap-2 mb-6 sm:mb-8 cursor-pointer">
+        <Link
+          to="/"
+          className="flex items-center justify-center gap-2 mb-6 sm:mb-8 cursor-pointer"
+        >
           <div className="relative">
             <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500 dark:text-blue-400 absolute -left-1" />
             <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-500 ml-3 sm:ml-4" />
@@ -404,306 +440,327 @@ export default function SignUp() {
           </span>
         </Link>
 
-        
-          {/* Sign Up Form */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-700">
-            <div className="text-center mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Create Account
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Join the UniMate community</p>
+        {/* Sign Up Form */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-700">
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Create Account
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+              Join the UniMate community
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+            {/* First Name and Last Name in a grid */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="firstName"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  First Name{" "}
+                  <span className="text-red-500 dark:text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="John"
+                  required
+                  className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="lastName"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Last Name{" "}
+                  <span className="text-red-500 dark:text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Doe"
+                  required
+                  className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base"
+                />
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
-              {/* First Name and Last Name in a grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label
-                    htmlFor="firstName"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    First Name <span className="text-red-500 dark:text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="John"
-                    required
-                    className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="lastName"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Last Name <span className="text-red-500 dark:text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Doe"
-                    required
-                    className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  University Email <span className="text-red-500 dark:text-red-400">*</span>
-                </label>
-                <div className="relative" ref={emailRef}>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={handleEmailChange}
-                    onBlur={handleEmailBlur}
-                    placeholder="yourname@university.edu"
-                    required
-                    className={`w-full px-4 py-2.5 sm:py-3 rounded-lg border ${
-                      emailError 
-                        ? 'border-red-300 dark:border-red-700 focus:ring-red-500 dark:focus:ring-red-400' 
-                        : isEmailValid() 
-                        ? 'border-green-300 dark:border-green-700 focus:ring-green-500 dark:focus:ring-green-400' 
-                        : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500 dark:focus:ring-blue-400'
-                    } bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:border-transparent outline-none transition-all text-sm sm:text-base pr-10`}
-                  />
-                  {email && (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      {isEmailValid() ? (
-                        <CheckCircle className="w-5 h-5 text-green-500 dark:text-green-400" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400" />
-                      )}
-                    </div>
-                  )}
-                </div>
-                {emailError && (
-                  <p className="text-xs text-red-500 dark:text-red-400 mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    {emailError}
-                  </p>
-                )}
-                {isEmailValid() && !emailError && (
-                  <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" />
-                    Valid university email address
-                  </p>
-                )}
-              </div>
-
-              <PasswordStrengthField
-                value={password}
-                onChange={handlePasswordChange}
-                required
-                showStrengthMeter
-              />
-
-              <PhoneCountryInput
-                ref={phoneRef}
-                country={country}
-                countryCode={countryCode}
-                phone={phone}
-                onCountryChange={handleCountryChange}
-                onPhoneChange={handlePhoneChange}
-                onPhoneBlur={handlePhoneBlur}
-                error={phoneError}
-                required
-                isChecking={isCheckingPhone}
-                existsInDB={phoneExistsInDB}
-              />
-
-              <div>
-                <label
-                  htmlFor="gender"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  Gender <span className="text-red-500 dark:text-red-400">*</span>
-                </label>
-                <select
-                  id="gender"
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base cursor-pointer"
-                >
-                  <option value="">Select your gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="role"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  I am a... <span className="text-red-500 dark:text-red-400">*</span>
-                </label>
-                <select
-                  id="role"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base cursor-pointer"
-                >
-                  <option value="">Select your role</option>
-                  <option value="dorm_seeker">Student looking for dorm</option>
-                  <option value="dorm_provider">Student offering dorm</option>
-                  <option value="carpool">Student looking for carpool</option>
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="university"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  University <span className="text-red-500 dark:text-red-400">*</span>
-                </label>
-                <div ref={universityRef}>
-                  <select
-                    id="university"
-                    value={university}
-                    onChange={handleUniversityChange}
-                    required
-                    className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base cursor-pointer"
-                  >
-                    <option value="">Select your university</option>
-                    {Object.keys(groupedUniversities).map(groupName => (
-                      <optgroup key={groupName} label={groupName}>
-                        {groupedUniversities[groupName].map(uni => (
-                          <option key={uni.name} value={uni.name}>
-                            {uni.name}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                </div>
-                {universityError && (
-                  <p className="text-xs text-red-500 dark:text-red-400 mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    {universityError}
-                  </p>
-                )}
-              </div>
-
-              {/* Carpool Region Selection - Only shown for carpool users */}
-              {role === 'carpool' && (
-                <div>
-                  <label
-                    htmlFor="carpoolRegion"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Your Region / City
-                    <span className="text-red-500 dark:text-red-400 ml-1">*</span>
-                  </label>
-                  <select
-                    id="carpoolRegion"
-                    value={carpoolRegion}
-                    onChange={(e) => setCarpoolRegion(e.target.value)}
-                    required
-                    className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base cursor-pointer"
-                  >
-                    <option value="">Select your region/city</option>
-                    {Object.keys(getGroupedRegions()).map(regionGroup => (
-                      <optgroup key={regionGroup} label={regionGroup}>
-                        {getGroupedRegions()[regionGroup].map(location => (
-                          <option key={location.name} value={location.name}>
-                            {location.name}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                    You'll only see carpools starting from your selected region to your university
-                  </p>
-                </div>
-              )}
-
-              {/* Class Schedule - Only shown for carpool users */}
-              {role === 'carpool' && (
-                <ClassScheduleBuilder
-                  schedule={classSchedule}
-                  scheduleHelpers={{
-                    addScheduleBlock,
-                    removeScheduleBlock,
-                    toggleDayInBlock,
-                    updateBlockTime,
-                    isDayUsedElsewhere
-                  }}
-                  required
-                />
-              )}
-
-              <ProfilePictureUpload
-                preview={profilePicturePreview}
-                onChange={handleProfilePictureChange}
-                onRemove={removeProfilePicture}
-              />
-
-              <div className="flex items-start">
-                <input
-                  type="checkbox"
-                  id="terms"
-                  required
-                  className="w-4 h-4 text-blue-600 dark:text-blue-500 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400 mt-1 cursor-pointer"
-                />
-                <label htmlFor="terms" className="ml-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                  I agree to the{" "}
-                  <button
-                    type="button"
-                    onClick={() => navigate('/terms', { state: { from: 'signup', formData: saveFormData() } })}
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer text-xs sm:text-sm font-semibold"
-                  >
-                    Terms of Service
-                  </button>{" "}
-                  and{" "}
-                  <button
-                    type="button"
-                    onClick={() => navigate('/privacy', { state: { from: 'signup', formData: saveFormData() } })}
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer text-xs sm:text-sm font-semibold"
-                  >
-                    Privacy Policy
-                  </button>
-                </label>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-blue-500 dark:bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors font-medium shadow-lg shadow-blue-500/30 dark:shadow-blue-900/30 text-sm sm:text-base cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </button>
-            </form>
+                University Email{" "}
+                <span className="text-red-500 dark:text-red-400">*</span>
+              </label>
+              <div className="relative" ref={emailRef}>
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={handleEmailChange}
+                  onBlur={handleEmailBlur}
+                  placeholder="yourname@university.edu"
+                  required
+                  className={`w-full px-4 py-2.5 sm:py-3 rounded-lg border ${
+                    emailError
+                      ? "border-red-300 dark:border-red-700 focus:ring-red-500 dark:focus:ring-red-400"
+                      : isEmailValid()
+                        ? "border-green-300 dark:border-green-700 focus:ring-green-500 dark:focus:ring-green-400"
+                        : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  } bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:border-transparent outline-none transition-all text-sm sm:text-base pr-10`}
+                />
+                {email && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {isEmailValid() ? (
+                      <CheckCircle className="w-5 h-5 text-green-500 dark:text-green-400" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400" />
+                    )}
+                  </div>
+                )}
+              </div>
+              {emailError && (
+                <p className="text-xs text-red-500 dark:text-red-400 mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {emailError}
+                </p>
+              )}
+              {isEmailValid() && !emailError && (
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  Valid university email address
+                </p>
+              )}
+            </div>
 
-            {apiError && (
-              <p className="text-xs text-red-500 dark:text-red-400 mt-2 text-center">
-                {apiError}
-              </p>
+            <PasswordStrengthField
+              value={password}
+              onChange={handlePasswordChange}
+              required
+              showStrengthMeter
+            />
+
+            <PhoneCountryInput
+              ref={phoneRef}
+              country={country}
+              countryCode={countryCode}
+              phone={phone}
+              onCountryChange={handleCountryChange}
+              onPhoneChange={handlePhoneChange}
+              onPhoneBlur={handlePhoneBlur}
+              error={phoneError}
+              required
+              isChecking={isCheckingPhone}
+              existsInDB={phoneExistsInDB}
+            />
+
+            <div>
+              <label
+                htmlFor="gender"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Gender <span className="text-red-500 dark:text-red-400">*</span>
+              </label>
+              <select
+                id="gender"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base cursor-pointer"
+              >
+                <option value="">Select your gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="role"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                I am a...{" "}
+                <span className="text-red-500 dark:text-red-400">*</span>
+              </label>
+              <select
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base cursor-pointer"
+              >
+                <option value="">Select your role</option>
+                <option value="dorm_seeker">Student looking for dorm</option>
+                <option value="dorm_provider">Student offering dorm</option>
+                <option value="carpool">Student looking for carpool</option>
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="university"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                University{" "}
+                <span className="text-red-500 dark:text-red-400">*</span>
+              </label>
+              <div ref={universityRef}>
+                <select
+                  id="university"
+                  value={university}
+                  onChange={handleUniversityChange}
+                  required
+                  className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base cursor-pointer"
+                >
+                  <option value="">Select your university</option>
+                  {Object.keys(groupedUniversities).map((groupName) => (
+                    <optgroup key={groupName} label={groupName}>
+                      {groupedUniversities[groupName].map((uni) => (
+                        <option key={uni.name} value={uni.name}>
+                          {uni.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+              {universityError && (
+                <p className="text-xs text-red-500 dark:text-red-400 mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {universityError}
+                </p>
+              )}
+            </div>
+
+            {/* Carpool Region Selection - Only shown for carpool users */}
+            {role === "carpool" && (
+              <div>
+                <label
+                  htmlFor="carpoolRegion"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Your Region / City
+                  <span className="text-red-500 dark:text-red-400 ml-1">*</span>
+                </label>
+                <select
+                  id="carpoolRegion"
+                  value={carpoolRegion}
+                  onChange={(e) => setCarpoolRegion(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base cursor-pointer"
+                >
+                  <option value="">Select your region/city</option>
+                  {Object.keys(getGroupedRegions()).map((regionGroup) => (
+                    <optgroup key={regionGroup} label={regionGroup}>
+                      {getGroupedRegions()[regionGroup].map((location) => (
+                        <option key={location.name} value={location.name}>
+                          {location.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                  You'll only see carpools starting from your selected region to
+                  your university
+                </p>
+              </div>
             )}
 
-            <div className="mt-5 sm:mt-6 text-center">
-              <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-                Already have an account?{" "}
-                <Link to="/login" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium cursor-pointer">
-                  Login
-                </Link>
-              </p>
+            {/* Class Schedule - Only shown for carpool users */}
+            {role === "carpool" && (
+              <ClassScheduleBuilder
+                schedule={classSchedule}
+                scheduleHelpers={{
+                  addScheduleBlock,
+                  removeScheduleBlock,
+                  toggleDayInBlock,
+                  updateBlockTime,
+                  isDayUsedElsewhere,
+                }}
+                required
+              />
+            )}
+
+            <ProfilePictureUpload
+              preview={profilePicturePreview}
+              onChange={handleProfilePictureChange}
+              onRemove={removeProfilePicture}
+            />
+
+            <div className="flex items-start">
+              <input
+                type="checkbox"
+                id="terms"
+                required
+                className="w-4 h-4 text-blue-600 dark:text-blue-500 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400 mt-1 cursor-pointer"
+              />
+              <label
+                htmlFor="terms"
+                className="ml-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400"
+              >
+                I agree to the{" "}
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate("/terms", {
+                      state: { from: "signup", formData: saveFormData() },
+                    })
+                  }
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer text-xs sm:text-sm font-semibold"
+                >
+                  Terms of Service
+                </button>{" "}
+                and{" "}
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate("/privacy", {
+                      state: { from: "signup", formData: saveFormData() },
+                    })
+                  }
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer text-xs sm:text-sm font-semibold"
+                >
+                  Privacy Policy
+                </button>
+              </label>
             </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-blue-500 dark:bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors font-medium shadow-lg shadow-blue-500/30 dark:shadow-blue-900/30 text-sm sm:text-base cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? "Creating Account..." : "Create Account"}
+            </button>
+          </form>
+
+          {apiError && (
+            <p className="text-xs text-red-500 dark:text-red-400 mt-2 text-center">
+              {apiError}
+            </p>
+          )}
+
+          <div className="mt-5 sm:mt-6 text-center">
+            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium cursor-pointer"
+              >
+                Login
+              </Link>
+            </p>
           </div>
+        </div>
       </div>
     </div>
   );

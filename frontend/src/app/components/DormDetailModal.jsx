@@ -12,7 +12,10 @@ export function DormDetailModal({
   if (!selectedDorm) return null;
 
   // Calculate display gender based on provider's preference
-  const displayGender = getGenderDisplayText(selectedDorm.genderPreference || selectedDorm.gender, selectedDorm.posterGender);
+const displayGender = getGenderDisplayText(
+  selectedDorm.genderPreference,
+  selectedDorm.poster?.gender,
+);
 
   return (
     <div className="fixed inset-0 backdrop-blur-md bg-black/30 dark:bg-black/60 flex items-center justify-center z-50 p-4">

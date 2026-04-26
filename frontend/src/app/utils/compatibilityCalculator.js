@@ -1,11 +1,11 @@
 /**
  * Comprehensive Compatibility Calculator for Backend
- * 
+ *
  * This is the server-side version that can be used with Prisma/PostgreSQL
  * Imports the core calculation logic from the shared calculator
  */
 
-import { calculateCompatibility as coreCalculate } from '../src/app/utils/comprehensiveCompatibilityCalculator.js';
+import { calculateCompatibility as coreCalculate } from "./comprehensiveCompatibilityCalculator.js";
 
 /**
  * Calculate compatibility and format for database storage
@@ -13,14 +13,17 @@ import { calculateCompatibility as coreCalculate } from '../src/app/utils/compre
  * @param {Object} providerQuestionnaire - Provider's questionnaire
  * @returns {Object} - Formatted for Prisma CompatibilityScore model
  */
-export function calculateCompatibilityForDB(seekerQuestionnaire, providerQuestionnaire) {
+export function calculateCompatibilityForDB(
+  seekerQuestionnaire,
+  providerQuestionnaire,
+) {
   if (!seekerQuestionnaire || !providerQuestionnaire) {
     return {
       score: 0,
       matchReasons: JSON.stringify([]),
       potentialConflicts: JSON.stringify([]),
       dealBreakerViolations: JSON.stringify([]),
-      categoryScores: JSON.stringify({})
+      categoryScores: JSON.stringify({}),
     };
   }
 
@@ -33,7 +36,7 @@ export function calculateCompatibilityForDB(seekerQuestionnaire, providerQuestio
     matchReasons: JSON.stringify(result.matchReasons),
     potentialConflicts: JSON.stringify(result.potentialConflicts),
     dealBreakerViolations: JSON.stringify(result.dealBreakerViolations),
-    categoryScores: JSON.stringify(result.categoryScores)
+    categoryScores: JSON.stringify(result.categoryScores),
   };
 }
 
@@ -41,8 +44,14 @@ export function calculateCompatibilityForDB(seekerQuestionnaire, providerQuestio
  * Legacy function for backward compatibility
  * @deprecated Use calculateCompatibilityForDB instead
  */
-export function calculateCompatibilityScore(seekerQuestionnaire, providerQuestionnaire) {
-  const result = calculateCompatibilityForDB(seekerQuestionnaire, providerQuestionnaire);
+export function calculateCompatibilityScore(
+  seekerQuestionnaire,
+  providerQuestionnaire,
+) {
+  const result = calculateCompatibilityForDB(
+    seekerQuestionnaire,
+    providerQuestionnaire,
+  );
   return result.score;
 }
 
@@ -56,11 +65,11 @@ export function parseCompatibilityFromDB(dbRecord) {
 
   return {
     score: dbRecord.score,
-    matchReasons: JSON.parse(dbRecord.matchReasons || '[]'),
-    potentialConflicts: JSON.parse(dbRecord.potentialConflicts || '[]'),
-    dealBreakerViolations: JSON.parse(dbRecord.dealBreakerViolations || '[]'),
-    categoryScores: JSON.parse(dbRecord.categoryScores || '{}'),
+    matchReasons: JSON.parse(dbRecord.matchReasons || "[]"),
+    potentialConflicts: JSON.parse(dbRecord.potentialConflicts || "[]"),
+    dealBreakerViolations: JSON.parse(dbRecord.dealBreakerViolations || "[]"),
+    categoryScores: JSON.parse(dbRecord.categoryScores || "{}"),
     createdAt: dbRecord.createdAt,
-    updatedAt: dbRecord.updatedAt
+    updatedAt: dbRecord.updatedAt,
   };
 }

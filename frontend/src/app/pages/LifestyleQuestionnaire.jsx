@@ -1,14 +1,34 @@
-/**
- * Lifestyle Questionnaire Component
- * Last updated: 2025-03-08
- */
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { toast } from 'react-toastify';
 import { navigateToDashboard } from '../utils/navigationHelpers';
-// Import storage utilities for questionnaire management
-import { getUserQuestionnaire, hasCompletedQuestionnaire, saveUserQuestionnaire } from '../utils/storageUtils';
-import { ArrowLeft, CheckCircle, Mail, Moon, Sun, Home, Users, Coffee, BookOpen, Heart, Thermometer, Info, VolumeX, Volume1, Volume2, Gamepad2, Utensils, Plane, Music, Dumbbell, Palette, Camera, Film, Code, Flame, Snowflake } from 'lucide-react';
+import { questionnaireAPI } from "../services/api";
+import { ArrowLeft, CheckCircle, Moon, Sun, Home, Users, Coffee, BookOpen, Heart, Thermometer, Info, VolumeX, Volume1, Volume2, Gamepad2, Utensils, Plane, Music, Dumbbell, Palette, Camera, Film, Code, Flame, Snowflake } from 'lucide-react';
+
+const emptyQuestionnaire = {
+  sleepSchedule: "",
+  wakeUpTime: "",
+  sleepTime: "",
+  cleanliness: "",
+  organizationLevel: "",
+  socialLevel: "",
+  guestFrequency: "",
+  sharedSpaces: "",
+  smoking: "",
+  drinking: "",
+  pets: "",
+  dietaryPreferences: "",
+  studyTime: "",
+  noiseLevel: "",
+  musicWhileStudying: "",
+  temperaturePreference: "",
+  sharingItems: "",
+  allergies: "",
+  interests: [],
+  personalQualities: [],
+  importantQualities: [],
+  dealBreakers: [],
+};
 
 export default function LifestyleQuestionnaire() {
   const navigate = useNavigate();
@@ -29,45 +49,24 @@ export default function LifestyleQuestionnaire() {
   // Check if user is coming from profile to edit
   const isEditingFromProfile = localStorage.getItem('returnToProfile') === 'true';
   
-  // Check if questionnaire is already completed on mount
-  // Only show verification message if NOT editing from profile
-  
-  // Load existing questionnaire data if available (user-scoped)
-  const loadExistingData = () => {
-    // Try to load user-scoped questionnaire data
-    const existing = getUserQuestionnaire();
-    if (existing) {
-      return existing;
-    }
-    
-    // Return empty form if no existing data
-    return {
-      sleepSchedule: "",
-      wakeUpTime: "",
-      sleepTime: "",
-      cleanliness: "",
-      organizationLevel: "",
-      socialLevel: "",
-      guestFrequency: "",
-      sharedSpaces: "",
-      smoking: "",
-      drinking: "",
-      pets: "",
-      dietaryPreferences: "",
-      studyTime: "",
-      noiseLevel: "",
-      musicWhileStudying: "",
-      temperaturePreference: "",
-      sharingItems: "",
-      allergies: "",
-      interests: [],
-      personalQualities: [],
-      importantQualities: [],
-      dealBreakers: []
+  const [formData, setFormData] = useState(emptyQuestionnaire);
+  useEffect(() => {
+    const loadExistingQuestionnaire = async () => {
+      try {
+        const existing = await questionnaireAPI.getMe();
+
+        setFormData((prev) => ({
+          ...prev,
+          ...existing,
+        }));
+      } catch (error) {
+        // 404 means the user has not completed the questionnaire yet
+        console.log("No existing questionnaire found yet.");
+      }
     };
-  };
-  
-  const [formData, setFormData] = useState(loadExistingData());
+
+    loadExistingQuestionnaire();
+  }, []);
 
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
@@ -97,51 +96,24 @@ export default function LifestyleQuestionnaire() {
     }
   };
 
-  const handleSubmit = () => {
-    console.log("Questionnaire Data:", formData);
-    
-    // Save questionnaire data to user-scoped localStorage
-    saveUserQuestionnaire(formData);
-    
-    // Clear the signup form data from localStorage
-    localStorage.removeItem('signupFormData');
-    
-    // TODO: Backend Integration
-    // Submit the questionnaire data to the API
-    // POST /api/lifestyle-questionnaire
-    // Body: { userId, questionnaireData: formData }
-    //
-    // Backend should:
-    // 1. Save questionnaire data to MySQL database
-    // 2. Update user record: questionnaire_completed = true
-    // 3. Generate verification token
-    // 4. Send verification email using nodemailer
-    // 5. Return success response
-    
-    // Mock API call - replace with actual fetch
-    // questionnaireAPI.submit(formData, role)
-    //   .then(response => {
-    //     console.log("Questionnaire submitted successfully:", response);
-    //     setShowVerificationMessage(true); // Show email verification after questionnaire
-    //   })
-    //   .catch(error => {
-    //     console.error("Error submitting questionnaire:", error);
-    //   });
+  const handleSubmit = async () => {
+    try {
+      await questionnaireAPI.save(formData);
 
-    // Check if user came from profile page
-    const returnToProfile = localStorage.getItem('returnToProfile');
-    
-    if (returnToProfile === 'true') {
-      // Clear the flag
-      localStorage.removeItem('returnToProfile');
-      // Show success toast
-      toast.success('Lifestyle preferences updated successfully!');
-      // Redirect back to profile
-      navigate('/profile');
-    } else {
-      // Show success toast for new questionnaire completion
-      toast.success('Questionnaire completed successfully!');
-      navigateToDashboard(role, navigate);
+      localStorage.removeItem("signupFormData");
+
+      const returnToProfile = localStorage.getItem("returnToProfile");
+
+      if (returnToProfile === "true") {
+        localStorage.removeItem("returnToProfile");
+        toast.success("Lifestyle preferences updated successfully!");
+        navigate("/profile");
+      } else {
+        toast.success("Questionnaire completed successfully!");
+        navigateToDashboard(role, navigate);
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to save questionnaire");
     }
   };
 

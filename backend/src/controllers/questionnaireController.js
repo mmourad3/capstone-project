@@ -1,38 +1,38 @@
-import { prisma } from "../utils/database.js";
+import { QuestionnaireModel } from "../models/QuestionnaireModel.js";
 
-// CREATE or UPDATE questionnaire
 export const saveQuestionnaire = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const data = req.body;
+    const questionnaire = await QuestionnaireModel.upsertByUserId(
+      userId,
+      req.body,
+    );
 
-    const questionnaire = await prisma.questionnaire.upsert({
-      where: { userId },
-      update: data,
-      create: {
-        ...data,
-        userId,
-      },
+    return res.json({
+      message: "Questionnaire saved successfully",
+      questionnaire,
     });
-
-    res.json(questionnaire);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Save questionnaire error:", error);
+    return res.status(500).json({ message: "Failed to save questionnaire" });
   }
 };
 
-// GET current user's questionnaire
 export const getMyQuestionnaire = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const questionnaire = await prisma.questionnaire.findUnique({
-      where: { userId },
-    });
+    const questionnaire = await QuestionnaireModel.findByUserId(userId);
 
-    res.json(questionnaire);
+    if (!questionnaire) {
+      return res.status(404).json({ message: "Questionnaire not found" });
+    }
+
+    return res.json(questionnaire);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Get questionnaire error:", error);
+    return res.status(500).json({ message: "Failed to fetch questionnaire" });
   }
 };
+

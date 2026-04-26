@@ -1,35 +1,13 @@
 import { Sparkles, Edit2, Sun, Moon, Users, Coffee, BookOpen, Heart } from "lucide-react";
-import { getUserQuestionnaire, hasCompletedQuestionnaire } from "../utils/storageUtils";
+import { useQuestionnaire } from "../hooks/useQuestionnaire";
 
 export function LifestylePreferencesSection({ navigate }) {
-  // Get lifestyle data from user-scoped localStorage
-  const userQuestionnaire = getUserQuestionnaire();
-  const hasQuestionnaire = hasCompletedQuestionnaire();
-  
-  const questionnaire = userQuestionnaire || {
-    sleepSchedule: 'Not set',
-    wakeUpTime: 'Not set',
-    sleepTime: 'Not set',
-    cleanliness: 'Not set',
-    organizationLevel: 'Not set',
-    socialLevel: 'Not set',
-    guestFrequency: 'Not set',
-    sharedSpaces: 'Not set',
-    smoking: 'Not set',
-    drinking: 'Not set',
-    pets: 'Not set',
-    studyTime: 'Not set',
-    noiseLevel: 'Not set',
-    musicWhileStudying: 'Not set',
-    temperaturePreference: 'Not set',
-    sharingItems: 'Not set',
-    interests: [],
-    personalQualities: [],
-    importantQualities: [],
-    dealBreakers: [],
-    dietaryPreferences: 'Not set',
-    allergies: 'Not set'
-  };
+  const { questionnaire, hasQuestionnaire, isLoadingQuestionnaire } =
+    useQuestionnaire();
+
+  if (isLoadingQuestionnaire) {
+    return null;
+  }
 
   const handleEditQuestionnaire = () => {
     // Store a flag to return to profile after saving

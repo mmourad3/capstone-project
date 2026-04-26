@@ -149,8 +149,6 @@ model DormListing {
   
   posterId        String
   poster          User     @relation(fields: [posterId], references: [id], onDelete: Cascade)
-  posterName      String
-  posterEmail     String
   
   title           String
   location        String
@@ -158,16 +156,14 @@ model DormListing {
   longitude       Float
   price           String
   roomType        String   // "Single Room", "Shared Room"
-  gender          String   // "Male", "Female", "Any"
+  genderPreference String @default("any") 
   description     String   @db.Text
   
   amenities       String   @db.Text // JSON array
   images          String   @db.Text // JSON array
   
-  status          String   @default("Active") // "Active", "Inactive", "Rented"
-  inquiries       Int      @default(0)
-  
-  createdAt       DateTime @default(now())
+  status          String   @default("Active") // "Active", "Inactive", "Found Roommate"  
+  datePosted       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
   applications    DormApplication[]

@@ -1,5 +1,13 @@
 const API_BASE = "http://localhost:5000/api";
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("authToken");
+
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+};
 export const authAPI = {
   register: async (data) => {
     const res = await fetch(`${API_BASE}/auth/register`, {
@@ -95,8 +103,110 @@ export const userAPI = {
 
 // All other API modules return empty objects (not used)
 
-export const questionnaireAPI = {};
-export const dormAPI = {};
+export const questionnaireAPI = {
+  save: async (data) => {
+    const res = await fetch(`${API_BASE}/questionnaire`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+
+    const result = await res.json();
+    if (!res.ok) {
+      throw new Error(result.message || "Failed to save questionnaire");
+    }
+
+    return result;
+  },
+
+  getMe: async () => {
+    const res = await fetch(`${API_BASE}/questionnaire/me`, {
+      headers: getAuthHeaders(),
+    });
+
+    const result = await res.json();
+    if (!res.ok) {
+      throw new Error(result.message || "Failed to fetch questionnaire");
+    }
+
+    return result;
+  },
+};
+
+export const dormAPI = {
+  getAll: async () => {
+    const res = await fetch(`${API_BASE}/dorms`);
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message || "Failed to fetch dorm listings");
+    }
+
+    return result;
+  },
+
+  getMyListings: async () => {
+    const res = await fetch(`${API_BASE}/dorms/my-listings`, {
+      headers: getAuthHeaders(),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message || "Failed to fetch your dorm listings");
+    }
+
+    return result;
+  },
+
+  create: async (data) => {
+    const res = await fetch(`${API_BASE}/dorms`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message || "Failed to create dorm listing");
+    }
+
+    return result;
+  },
+
+  update: async (id, data) => {
+    const res = await fetch(`${API_BASE}/dorms/${id}`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message || "Failed to update dorm listing");
+    }
+
+    return result;
+  },
+
+  delete: async (id) => {
+    const res = await fetch(`${API_BASE}/dorms/${id}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message || "Failed to delete dorm listing");
+    }
+
+    return result;
+  },
+};
+
 export const carpoolAPI = {};
 export const messageAPI = {};
 export const roommateAPI = {};

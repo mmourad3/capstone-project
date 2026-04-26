@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { getUserQuestionnaire } from '../utils/storageUtils';
 
 /**
  * User Data Hook
@@ -49,7 +48,4 @@ function getUserDataFromStorage() {
     carpoolRegion: localStorage.getItem('carpoolRegion') || '',
     dormRegion: localStorage.getItem('dormRegion') || '',
     classSchedule: JSON.parse(localStorage.getItem('classSchedule') || '[]'),
-    lifestyleAnswers: getUserQuestionnaire() || {},
-    isEmailVerified: localStorage.getItem('isEmailVerified') === 'true',
-  };
-}
+}}

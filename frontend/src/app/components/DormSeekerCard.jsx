@@ -19,7 +19,11 @@ export function DormSeekerCard({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative">
-        <ImageCarousel images={listing.images} alt={listing.location} height="h-48 sm:h-56" />
+        <ImageCarousel
+          images={listing.images}
+          alt={listing.location}
+          height="h-48 sm:h-56"
+        />
         <button
           onClick={() => onToggleSave(listing.id)}
           className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors z-10 cursor-pointer"
@@ -40,7 +44,7 @@ export function DormSeekerCard({
             <CompatibilityBadge score={listing.compatibilityScore} />
           </div>
         )}
-        
+
         <div className="flex justify-between items-start mb-3">
           <button
             onClick={() => onViewDetails(listing)}
@@ -55,7 +59,9 @@ export function DormSeekerCard({
         <div className="space-y-2 mb-4">
           <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
             <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span>{formatDistance(listing.distanceKm)} from {userUniversity}</span>
+            <span>
+              {formatDistance(listing.distanceKm)} from {userUniversity}
+            </span>
           </div>
           <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
             <Home className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -69,7 +75,7 @@ export function DormSeekerCard({
         <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm mb-4 line-clamp-2">
           {listing.description}
         </p>
-        
+
         {/* Provider Profile Section */}
         <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
           {listing.posterProfilePic ? (
@@ -84,8 +90,12 @@ export function DormSeekerCard({
             </div>
           )}
           <div className="flex-1">
-            <p className="font-medium text-gray-900 dark:text-white text-sm">{listing.posterName}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{listing.posterGender}</p>
+            <p className="font-medium text-gray-900 dark:text-white text-sm">
+              {listing.posterName}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+              {listing.posterGender}
+            </p>
           </div>
           <button
             onClick={() => onViewProviderProfile(listing.posterId)}
@@ -94,7 +104,7 @@ export function DormSeekerCard({
             View Profile
           </button>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={() => onViewDetails(listing)}
@@ -103,7 +113,9 @@ export function DormSeekerCard({
             View Full Details →
           </button>
           <button
-            onClick={() => onWhatsApp(listing)}
+            onClick={() =>
+              onWhatsApp(listing.whatsapp, listing.posterName, listing)
+            }
             className="flex items-center gap-2 bg-green-500 dark:bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-600 dark:hover:bg-green-700 transition-colors w-full sm:w-auto justify-center text-sm sm:text-base cursor-pointer"
           >
             <MessageCircle className="w-4 h-4" />

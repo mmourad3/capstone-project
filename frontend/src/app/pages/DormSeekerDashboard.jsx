@@ -49,11 +49,8 @@ export default function DormSeekerDashboard() {
   const [dormListings, setDormListings] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Handler functions for detail modal
   const handleWhatsApp = (phone, posterName, listing) => {
-    const seekerName = localStorage.getItem('userName');
-    const seekerUniversity = localStorage.getItem('userUniversity');
-    contactDormProvider(listing, seekerName, seekerUniversity);
+    contactDormProvider(listing, userName, userUniversity);
   };
 
   const handleViewProviderProfile = (providerId, listingId = null) => {

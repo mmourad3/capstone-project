@@ -65,14 +65,21 @@ export const UserModel = {
     return blocks.map(parseScheduleBlock);
   },
 
-  update: (id, data) =>
-    prisma.user.update({
-      where: { id },
-      data,
-    }),
-
   delete: (id) =>
     prisma.user.delete({
       where: { id },
     }),
+
+  findByIdWithPassword: async (id) => {
+    return prisma.user.findUnique({
+      where: { id },
+    });
+  },
+
+  update: async (id, data) => {
+    return prisma.user.update({
+      where: { id },
+      data,
+    });
+  },
 };

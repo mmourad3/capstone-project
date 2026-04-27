@@ -1,12 +1,12 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI } from '../services/api';
+import { createContext, useContext, useState, useEffect } from "react";
+import { authAPI } from "../services/api";
 
 const AuthContext = createContext(null);
 
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
@@ -16,72 +16,95 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const clearAuthStorage = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userProfilePicture");
+    localStorage.removeItem("userPhone");
+    localStorage.removeItem("userUniversity");
+    localStorage.removeItem("userGender");
+  };
+
+  const saveUserToStorage = (freshUser) => {
+    const fullName =
+      freshUser.name ||
+      `${freshUser.firstName || ""} ${freshUser.lastName || ""}`.trim();
+
+    localStorage.setItem("userId", freshUser.id);
+    localStorage.setItem("userName", fullName);
+    localStorage.setItem("userEmail", freshUser.email || "");
+    localStorage.setItem("userRole", freshUser.role || "");
+    localStorage.setItem("userProfilePicture", freshUser.profilePicture || "");
+    localStorage.setItem("userPhone", freshUser.phone || "");
+    localStorage.setItem("userUniversity", freshUser.university || "");
+    localStorage.setItem("userGender", freshUser.gender || "");
+  };
+
   const checkAuth = async () => {
-    const token = localStorage.getItem('authToken');
-    const userId = localStorage.getItem('userId');
-    
-    if (!token || !userId) {
+    const token = localStorage.getItem("authToken");
+
+    if (!token) {
+      setUser(null);
+      setIsAuthenticated(false);
       setLoading(false);
       return;
     }
 
     try {
-      // Build user data from localStorage (no backend calls)
-      const userData = {
-        id: userId,
-        name: localStorage.getItem('userName') || '',
-        email: localStorage.getItem('userEmail') || '',
-        role: localStorage.getItem('userRole') || '',
-        profilePicture: localStorage.getItem('userProfilePicture') || '',
-        phone: localStorage.getItem('userPhone') || '',
-        university: localStorage.getItem('userUniversity') || '',
+      const freshUser = await authAPI.getMe();
+
+      const normalizedUser = {
+        ...freshUser,
+        name:
+          freshUser.name ||
+          `${freshUser.firstName || ""} ${freshUser.lastName || ""}`.trim(),
       };
-      
-      setUser(userData);
+
+      saveUserToStorage(normalizedUser);
+      setUser(normalizedUser);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error('Auth check failed:', error);
-      // Token is invalid, clear it
-      logout();
+      console.error("Auth check failed:", error);
+
+      clearAuthStorage();
       setUser(null);
       setIsAuthenticated(false);
+
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Check if user is authenticated on mount
   useEffect(() => {
     checkAuth();
   }, []);
 
   const login = async (email, password) => {
-    // localStorage-only login (no backend)
-    // This is handled in Login.jsx directly
-    return { success: true };
+    return authAPI.login(email, password);
   };
 
   const register = async (userData) => {
-    // localStorage-only registration (no backend)
-    // This is handled in SignUp.jsx directly
-    return { success: true };
+    return authAPI.register(userData);
   };
 
   const logout = () => {
-    // Call api.logout() to handle all localStorage cleanup (including legacy data)
-    authAPI.logout();
-    
-    // Update React state
+    clearAuthStorage();
     setUser(null);
     setIsAuthenticated(false);
   };
 
   const updateUser = (userData) => {
-    setUser(prevUser => ({ ...prevUser, ...userData }));
-    // Update localStorage as well
-    if (userData.name) localStorage.setItem('userName', userData.name);
-    if (userData.email) localStorage.setItem('userEmail', userData.email);
-    if (userData.profilePicture) localStorage.setItem('userProfilePicture', userData.profilePicture);
+    setUser((prevUser) => {
+      const updatedUser = { ...prevUser, ...userData };
+      saveUserToStorage(updatedUser);
+      return updatedUser;
+    });
   };
 
   const value = {
@@ -95,9 +118,5 @@ export function AuthProvider({ children }) {
     checkAuth,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

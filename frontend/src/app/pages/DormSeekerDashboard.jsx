@@ -17,14 +17,13 @@ import { DormSeekerDetailModal } from "../components/DormSeekerDetailModal";
 import { useRoleProtection } from "../hooks/useRoleProtection";
 import { useUserData } from "../hooks/useUserData";
 import { calculateDistanceToUniversity } from "../utils/universityCoordinates";
-import { DEMO_DORM_LISTINGS, initializeDormDemoData, DEMO_QUESTIONNAIRES } from "../data/demoData";
+import { DEMO_QUESTIONNAIRES } from "../data/demoData";
 import { calculateCompatibility } from "../utils/comprehensiveCompatibilityCalculator";
 import { contactDormProvider } from "../utils/whatsappUtils";
-import { navigateToDashboard } from "../utils/navigationHelpers";
-import { toggleFavorite, loadFavoritesFromStorage } from "../utils/favoritesHelpers";
+import { toggleFavorite } from "../utils/favoritesHelpers";
 import { matchesGenderPreference } from "../utils/genderFilterHelpers";
+import { dormAPI } from "../services/api";
 
-const mockListings = DEMO_DORM_LISTINGS;
 
 export default function DormSeekerDashboard() {
   const navigate = useNavigate();
@@ -48,12 +47,10 @@ export default function DormSeekerDashboard() {
   const [savedListings, setSavedListings] = useState([]);
   const [selectedListing, setSelectedListing] = useState(null);
   const [dormListings, setDormListings] = useState([]);
+  const [loading, setLoading] = useState(true);
   
-  // Handler functions for detail modal
   const handleWhatsApp = (phone, posterName, listing) => {
-    const seekerName = localStorage.getItem('userName');
-    const seekerUniversity = localStorage.getItem('userUniversity');
-    contactDormProvider(listing, seekerName, seekerUniversity);
+    contactDormProvider(listing, userName, userUniversity);
   };
 
   const handleViewProviderProfile = (providerId, listingId = null) => {
@@ -69,74 +66,128 @@ export default function DormSeekerDashboard() {
     navigate(url);
   };
   
-  const processListings = (listings) => {
-    const currentUserId = userId || 'user-default';
-    const currentUserQuestionnaire = lifestyleAnswers || null;
-    
-    return listings.map(listing => {
-      const processed = { ...listing };
-      
-      // Only calculate compatibility if user has completed questionnaire
-      if (currentUserQuestionnaire && Object.keys(currentUserQuestionnaire).length > 0) {
-        const posterQuestionnaire = DEMO_QUESTIONNAIRES[listing.posterId];
-        
-        if (posterQuestionnaire) {
-          const compatibility = calculateCompatibility(currentUserQuestionnaire, posterQuestionnaire);
-          processed.compatibilityScore = compatibility.score;
-          processed.matchReasons = compatibility.matchReasons;
-          processed.potentialConflicts = compatibility.potentialConflicts;
-          processed.reverseDealBreakerViolations = compatibility.reverseDealBreakerViolations;
-        }
-      }
-      
-      return processed;
-    });
-  };
 
-  const loadListings = () => {
-    const postedDorms = JSON.parse(localStorage.getItem('postedDorms') || '[]');
-    const processedMock = processListings(mockListings);
-    const processedPosted = processListings(postedDorms);
-    // Only show ACTIVE listings (filter out inactive and "Found Roommate")
-    const allListings = [...processedMock, ...processedPosted].filter(l => l.status === 'Active');
-    
-    // Calculate distance for each listing RIGHT HERE
-    const listingsWithDistance = allListings.map(listing => {
-      const hasCoordinates = listing.latitude !== undefined && listing.longitude !== undefined;
-      
-      const distanceKm = hasCoordinates 
+const normalizeDormListing = (listing) => {
+  const poster = listing.poster || {};
+
+  const posterName =
+    `${poster.firstName || ""} ${poster.lastName || ""}`.trim();
+
+  return {
+    ...listing,
+
+    // Keep frontend display logic working
+    price: Number(listing.price) || 0,
+
+    // Backend poster object converted to old frontend field names
+    posterId: listing.posterId,
+    posterName,
+    poster: posterName,
+    posterEmail: poster.email || "",
+    posterPhone: poster.phone || "",
+    whatsapp: poster.phone || "",
+    posterGender: poster.gender || "",
+    posterProfilePic: poster.profilePicture || "",
+
+    // Safety defaults
+    amenities: Array.isArray(listing.amenities) ? listing.amenities : [],
+    images: Array.isArray(listing.images) ? listing.images : [],
+    genderPreference: listing.genderPreference || "any",
+    status: listing.status || "Active",
+  };
+};
+
+const processListings = (listings) => {
+  const currentUserQuestionnaire = lifestyleAnswers || null;
+
+  return listings.map((listing) => {
+    const processed = normalizeDormListing(listing);
+
+    if (
+      currentUserQuestionnaire &&
+      Object.keys(currentUserQuestionnaire).length > 0
+    ) {
+      const posterQuestionnaire = DEMO_QUESTIONNAIRES[processed.posterId];
+
+      if (posterQuestionnaire) {
+        const compatibility = calculateCompatibility(
+          currentUserQuestionnaire,
+          posterQuestionnaire,
+        );
+
+        processed.compatibilityScore = compatibility.score;
+        processed.matchReasons = compatibility.matchReasons;
+        processed.potentialConflicts = compatibility.potentialConflicts;
+        processed.reverseDealBreakerViolations =
+          compatibility.reverseDealBreakerViolations;
+      }
+    }
+
+    return processed;
+  });
+};
+
+const loadListings = async () => {
+  try {
+    const backendDorms = await dormAPI.getAll();
+
+    const activeListings = processListings(backendDorms).filter(
+      (listing) => listing.status === "Active",
+    );
+
+    const listingsWithDistance = activeListings.map((listing) => {
+      const hasCoordinates =
+        listing.latitude !== undefined &&
+        listing.latitude !== null &&
+        listing.longitude !== undefined &&
+        listing.longitude !== null;
+
+      const distanceKm = hasCoordinates
         ? calculateDistanceToUniversity(
-            { lat: listing.latitude, lng: listing.longitude }, 
-            userUniversity
+            { lat: listing.latitude, lng: listing.longitude },
+            userUniversity,
           )
         : null;
-      
+
       return {
         ...listing,
-        distanceKm
+        distanceKm,
       };
     });
-    
+
     setDormListings(listingsWithDistance);
-    initializeDormDemoData(mockListings);
+    setLoading(false);
+  } catch (error) {
+    toast.error(error.message || "Failed to load dorm listings");
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  loadListings();
+
+  const handleUpdate = () => loadListings();
+
+  ["roommateAccepted", "roommateEnded"].forEach((event) =>
+    window.addEventListener(event, handleUpdate),
+  );
+
+  return () =>
+    ["roommateAccepted", "roommateEnded"].forEach((event) =>
+      window.removeEventListener(event, handleUpdate),
+    );
+}, [userUniversity, lifestyleAnswers]);
+
+useEffect(() => {
+  const handleVisibilityChange = () => {
+    if (!document.hidden) loadListings();
   };
 
-  useEffect(() => {
-    loadListings();
-    const handleUpdate = () => loadListings();
-    ['roommateAccepted', 'roommateEnded', 'storage'].forEach(event => 
-      window.addEventListener(event, handleUpdate)
-    );
-    return () => ['roommateAccepted', 'roommateEnded', 'storage'].forEach(event => 
-      window.removeEventListener(event, handleUpdate)
-    );
-  }, []);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
 
-  useEffect(() => {
-    const handleVisibilityChange = () => !document.hidden && loadListings();
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  return () =>
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+}, [userUniversity, lifestyleAnswers]);
 
   // Filter listings based on gender, search, price, etc.
   const filteredListings = dormListings.filter(listing => {
@@ -322,7 +373,12 @@ export default function DormSeekerDashboard() {
           sortBy={sortBy}
           setSortBy={setSortBy}
         />
-
+        {/* Loading */}
+        {loading && (
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            Loading dorm listings...
+          </p>
+        )}
         {/* Listings Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {sortedListings.map((listing) => (

@@ -14,7 +14,6 @@ import { ClassScheduleBuilder } from '../components/form/ClassScheduleBuilder';
 import { ProfilePictureUpload } from '../components/form/ProfilePictureUpload';
 import { EMAIL_UNIVERSITY_MAP, isValidUniversityEmail, getGroupedUniversities } from '../config/universityConfig';
 import { AVAILABLE_COUNTRIES as countries, getGroupedRegions } from '../config/appConfig';
-import { normalizeGender } from '../utils/genderHelpers';
 import { validatePassword, getPasswordErrorMessage } from '../utils/passwordValidation';
 import { createExistenceChecker } from '../utils/validationHelpers';
 import { createScheduleHelpers } from '../utils/scheduleHelpers';
@@ -383,7 +382,7 @@ export default function SignUp() {
         email: email.toLowerCase().trim(),
         password,
         phone: `${countryCode}${phone}`,
-        gender: normalizeGender(gender),
+        gender: gender,
         role,
         country,
         countryCode: countryISO,
@@ -577,8 +576,8 @@ export default function SignUp() {
                 className="w-full px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-sm sm:text-base cursor-pointer"
               >
                 <option value="">Select your gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
               </select>
             </div>
 

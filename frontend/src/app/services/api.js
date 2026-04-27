@@ -206,6 +206,23 @@ export const dormAPI = {
     return result;
   },
 };
+export const geminiChatAPI = {
+  sendMessage: async ({ message, systemFileText }) => {
+    const res = await fetch(`${API_BASE}/gemini-chat`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ message, systemFileText }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message || "Gemini chatbot failed");
+    }
+
+    return result;
+  },
+};
 
 export const carpoolAPI = {};
 export const messageAPI = {};

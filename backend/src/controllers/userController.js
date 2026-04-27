@@ -213,7 +213,6 @@ export const getUser = async (req, res) => {
 
     const { password, ...safeUser } = user;
 
-
     return res.json({
       ...safeUser,
       classSchedule,
@@ -239,8 +238,8 @@ export const getMe = async (req, res) => {
         ? await UserModel.findScheduleByUserId(user.id)
         : [];
 
-      const { password, ...safeUser } = user;
-    return res.json({...safeUser,classSchedule,});
+    const { password, ...safeUser } = user;
+    return res.json({ ...safeUser, classSchedule });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
@@ -265,15 +264,20 @@ export const updateProfile = async (req, res) => {
 /**
  * DELETE USER
  */
-export const deleteUser = async (req, res) => {
+export const deleteMe = async (req, res) => {
   try {
-    const { id } = req.params;
+    const user = await UserModel.findById(req.user.id);
 
-    await UserModel.delete(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    return res.json({ message: "User deleted successfully" });
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
+    await UserModel.delete(req.user.id);
+
+    return res.json({ message: "Account deleted successfully" });
+  } catch (error) {
+    console.error("Delete account error:", error);
+    return res.status(500).json({ message: "Failed to delete account" });
   }
 };
 export const getAllUsers = async (req, res) => {
@@ -287,5 +291,42 @@ export const getAllUsers = async (req, res) => {
   } catch (err) {
     console.error("Get users error:", err);
     res.status(500).json({ message: "Failed to fetch users" });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        message: "Current password and new password are required",
+      });
+    }
+
+    const user = await UserModel.findByIdWithPassword(req.user.id);
+
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Current password is incorrect",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await UserModel.update(req.user.id, {
+      password: hashedPassword,
+    });
+
+    return res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error("Change password error:", error);
+    return res.status(500).json({ message: "Failed to change password" });
   }
 };

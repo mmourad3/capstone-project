@@ -9,7 +9,8 @@ import {
   getUser,
   getMe,
   updateProfile,
-  deleteUser,
+  deleteMe,
+  changePassword
 } from "../controllers/userController.js";
 
 const router = express.Router();
@@ -22,5 +23,6 @@ router.get("/users", getAllUsers);
 router.get("/users/:id", getUser);
 router.get("/me", protect, getMe);
 router.put("/me", protect, updateProfile);
-router.delete("/users/:id", protect, deleteUser);
+router.put("/me/password", protect, changePassword);
+router.delete("/me", protect, deleteMe);
 export default router;

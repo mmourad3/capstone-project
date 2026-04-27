@@ -28,7 +28,7 @@ export function FavoriteDormsSection({
               className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow bg-white dark:bg-gray-700"
             >
               <img
-                src={listing.image}
+                src={listing.images[0]}
                 alt={listing.title}
                 className="w-full sm:w-20 md:w-24 h-48 sm:h-20 md:h-24 object-cover rounded-lg flex-shrink-0"
               />

@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { DashboardNav } from "../components/DashboardNav";
 import { LifestylePreferencesSection } from "../components/LifestylePreferencesSection";
 import RoommateSection from "../components/RoommateSection";
-import { User, Upload, X, ArrowLeft } from "lucide-react";
+import { Upload, X, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
-import { getFavoritedListings } from "../utils/dormUtils";
 import { ProfilePicture } from "../components/ProfilePicture";
 import { DormSeekerDetailModal } from "../components/DormSeekerDetailModal";
 import { contactDormProvider } from "../utils/whatsappUtils";
@@ -13,7 +12,6 @@ import { validatePasswordChange } from "../utils/passwordValidation";
 import { createScheduleHelpers } from "../utils/scheduleHelpers";
 import { handleProfilePictureUpload, removeProfilePictureHelper } from "../utils/profileHelpers";
 import { navigateToDashboard, getRoleDisplayName } from "../utils/navigationHelpers";
-import { toggleFavorite, removeFavorite as removeFavoriteHelper } from "../utils/favoritesHelpers";
 import { validatePhoneByCountry } from "../utils/phoneValidation";
 import { ChangePasswordSection } from "../components/profile/ChangePasswordSection";
 import { DeleteAccountSection } from "../components/profile/DeleteAccountSection";
@@ -21,10 +19,11 @@ import { FavoriteDormsSection } from "../components/profile/FavoriteDormsSection
 import { JoinedCarpoolsSection } from "../components/profile/JoinedCarpoolsSection";
 import { ClassScheduleSection } from "../components/profile/ClassScheduleSection";
 import { ProfileInfoForm } from "../components/profile/ProfileInfoForm";
+import { calculateDistanceToUniversity } from "../utils/universityCoordinates";
+import { authAPI, favoriteDormAPI } from "../services/api";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isEditing, setIsEditing] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -106,95 +105,109 @@ export default function Profile() {
     removeProfilePictureHelper(setEditedData, editedData, 'profilePicture');
   };
 
-  const handleSaveProfile = () => {
-    // Validate required fields
-    if (!editedData.firstName || !editedData.lastName || !editedData.gender || !editedData.country || !editedData.phone) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
+const handleSaveProfile = async () => {
+  if (
+    !editedData.firstName ||
+    !editedData.lastName ||
+    !editedData.gender ||
+    !editedData.country ||
+    !editedData.phone
+  ) {
+    toast.error("Please fill in all required fields");
+    return;
+  }
 
-    // Validate phone number format
-    const phoneValidation = validatePhoneByCountry(editedData.phone, editedData.country);
-    if (!phoneValidation.isValid) {
-      toast.error(phoneValidation.error);
-      return;
-    }
+  const phoneValidation = validatePhoneByCountry(
+    editedData.phone,
+    editedData.country,
+  );
 
-    // Check if phone number is already in use by another account (mock validation)
-    const currentUserPhone = localStorage.getItem('userPhone');
-    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    const phoneWithCode = `${editedData.countryCode}${editedData.phone}`;
-    const phoneAlreadyExists = registeredUsers.some(user => 
-      user.phone === phoneWithCode && user.phone !== `${userData.countryCode}${currentUserPhone}`
+  if (!phoneValidation.isValid) {
+    toast.error(phoneValidation.error);
+    return;
+  }
+
+  try {
+    const updatedUser = await authAPI.updateMe({
+      firstName: editedData.firstName,
+      lastName: editedData.lastName,
+      gender: editedData.gender,
+      country: editedData.country,
+      countryCode: editedData.countryCode,
+      phone: editedData.phone,
+      profilePicture: editedData.profilePicture || null,
+    });
+
+    const newUserData = {
+      ...userData,
+      ...updatedUser,
+    };
+
+    setUserData(newUserData);
+    setEditedData(newUserData);
+    setIsEditing(false);
+
+    localStorage.setItem("userFirstName", newUserData.firstName || "");
+    localStorage.setItem("userLastName", newUserData.lastName || "");
+    localStorage.setItem(
+      "userName",
+      `${newUserData.firstName || ""} ${newUserData.lastName || ""}`.trim(),
+    );
+    localStorage.setItem("userGender", newUserData.gender || "");
+    localStorage.setItem("userCountry", newUserData.country || "");
+    localStorage.setItem("userCountryCode", newUserData.countryCode || "");
+    localStorage.setItem("userPhone", newUserData.phone || "");
+    localStorage.setItem(
+      "userProfilePicture",
+      newUserData.profilePicture || "",
     );
 
-    if (phoneAlreadyExists) {
-      toast.error('This phone number is already linked to another account');
-      return;
-    }
-
-    // Save to localStorage (editable fields)
-    localStorage.setItem('userFirstName', editedData.firstName);
-    localStorage.setItem('userLastName', editedData.lastName);
-    localStorage.setItem('userName', `${editedData.firstName} ${editedData.lastName}`.trim());
-    localStorage.setItem('userGender', editedData.gender);
-    localStorage.setItem('userCountry', editedData.country);
-    localStorage.setItem('userCountryCode', editedData.countryCode);
-    localStorage.setItem('userPhone', editedData.phone);
-    if (editedData.profilePicture) {
-      localStorage.setItem('userProfilePicture', editedData.profilePicture);
-    } else {
-      localStorage.removeItem('userProfilePicture');
-    }
-
-    // Update registered users list with new phone
-    const updatedUsers = registeredUsers.map(user => {
-      if (user.email === userData.email) {
-        return { ...user, phone: phoneWithCode, country: editedData.country };
-      }
-      return user;
-    });
-    localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
-    
-    setUserData({ ...editedData });
-    setIsEditing(false);
-    toast.success('Profile updated successfully!');
-  };
+    toast.success("Profile updated successfully!");
+  } catch (error) {
+    toast.error(error.message || "Failed to update profile");
+  }
+};
 
   const handleCancelEdit = () => {
     setEditedData({ ...userData });
     setIsEditing(false);
   };
 
-  const handleChangePassword = (e) => {
+  const handleChangePassword = async (e) => {
     e.preventDefault();
-    
-    // Get stored password from localStorage
-    const storedPassword = localStorage.getItem('userPassword');
-    
-    // Validate password change using helper
+
+    if (!passwordData.currentPassword) {
+      toast.error("Please enter your current password");
+      return;
+    }
+
     const validation = validatePasswordChange(
       passwordData.currentPassword,
       passwordData.newPassword,
-      passwordData.confirmPassword,
-      storedPassword
+      passwordData.confirmPassword
     );
-    
+
     if (!validation.isValid) {
       toast.error(validation.error);
       return;
     }
 
-    // Save new password to localStorage
-    localStorage.setItem('userPassword', passwordData.newPassword);
-    
-    toast.success('Password changed successfully!');
-    setShowChangePassword(false);
-    setPasswordData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
+    try {
+      await authAPI.changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
+
+      toast.success("Password changed successfully!");
+      setShowChangePassword(false);
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error) {
+      toast.error(error.message || "Failed to change password");
+    }
   };
 
   const handleBack = () => {
@@ -202,50 +215,36 @@ export default function Profile() {
     navigateToDashboard(userType, navigate);
   };
 
-  const handleDeleteAccount = () => {
-    if (deleteConfirmText !== 'DELETE') {
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "DELETE") {
       toast.error('Please type "DELETE" to confirm account deletion.');
       return;
     }
 
-    const userEmail = localStorage.getItem('userEmail');
-    const userId = localStorage.getItem('userId');
+    try {
+      await authAPI.deleteMe();
 
-    // Frontend cleanup (mock implementation):
-    
-    // 1. Remove user from registered users list
-    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    const updatedUsers = registeredUsers.filter(user => user.email !== userEmail);
-    localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("userName");
+      localStorage.removeItem("userFirstName");
+      localStorage.removeItem("userLastName");
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("userProfilePicture");
+      localStorage.removeItem("userPhone");
+      localStorage.removeItem("userGender");
+      localStorage.removeItem("userUniversity");
+      localStorage.removeItem("userCountry");
+      localStorage.removeItem("userCountryCode");
+      localStorage.removeItem("carpoolRegion");
+      localStorage.removeItem("classSchedule");
 
-    // 2. Remove all roommate requests involving this user
-    const roommateRequests = JSON.parse(localStorage.getItem('roommateRequests') || '[]');
-    const updatedRoommateRequests = roommateRequests.filter(
-      req => req.senderEmail !== userEmail && req.recipientEmail !== userEmail
-    );
-    localStorage.setItem('roommateRequests', JSON.stringify(updatedRoommateRequests));
-
-    // 3. Remove all active roommates involving this user
-    const activeRoommates = JSON.parse(localStorage.getItem('activeRoommates') || '[]');
-    const updatedActiveRoommates = activeRoommates.filter(
-      rm => (rm.userEmail !== userEmail && rm.roommateEmail !== userEmail) &&
-            (rm.user1Email !== userEmail && rm.user2Email !== userEmail)
-    );
-    localStorage.setItem('activeRoommates', JSON.stringify(updatedActiveRoommates));
-
-    // Clear all current user data from localStorage
-    localStorage.clear();
-    
-    // Restore the cleaned up data
-    localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
-    localStorage.setItem('roommateRequests', JSON.stringify(updatedRoommateRequests));
-    localStorage.setItem('activeRoommates', JSON.stringify(updatedActiveRoommates));
-    
-    // Show confirmation message
-    toast.success('Your account has been permanently deleted.');
-    
-    // Redirect to home page
-    navigate('/');
+      toast.success("Your account has been permanently deleted.");
+      navigate("/");
+    } catch (error) {
+      toast.error(error.message || "Failed to delete account");
+    }
   };
 
   // Migration: Split old userName into firstName and lastName if needed
@@ -276,41 +275,74 @@ export default function Profile() {
     }
   }, []);
 
-  // Load favorite dorms from localStorage
-  useEffect(() => {
-    const loadFavorites = () => {
-      const storedFavorites = localStorage.getItem('favoriteDorms');
-      if (storedFavorites) {
-        const favoriteIds = JSON.parse(storedFavorites);
-        setFavoriteDorms(favoriteIds);
-      }
+  const normalizeFavoriteDorm = (listing) => {
+    const poster = listing.poster || {};
+    const posterName =
+      `${poster.firstName || ""} ${poster.lastName || ""}`.trim();
+      const hasCoordinates =
+        listing.latitude !== undefined &&
+        listing.latitude !== null &&
+        listing.longitude !== undefined &&
+        listing.longitude !== null;
+
+      const distanceKm = hasCoordinates
+        ? calculateDistanceToUniversity(
+            { lat: listing.latitude, lng: listing.longitude },
+            userData.university,
+          )
+        : null;
+
+    return {
+      ...listing,
+      price: Number(listing.price) || 0,
+      posterId: listing.posterId,
+      posterName,
+      poster: posterName,
+      posterEmail: poster.email || "",
+      posterPhone: poster.phone || "",
+      whatsapp: poster.phone || "",
+      posterGender: poster.gender || "",
+      posterProfilePic: poster.profilePicture || "",
+      amenities: Array.isArray(listing.amenities) ? listing.amenities : [],
+      images: Array.isArray(listing.images) ? listing.images : [],
+      genderPreference: listing.genderPreference || "any",
+      status: listing.status || "Active",
+      distanceKm,
     };
+  };
 
-    loadFavorites();
+ const loadFavoriteDorms = async (showError = false) => {
+   try {
+     const dorms = await favoriteDormAPI.getAll();
+     const normalizedDorms = dorms.map(normalizeFavoriteDorm);
 
-    // Listen for changes to favorites (from dashboard or other tabs)
-    const handleStorageChange = (e) => {
-      if (e.key === 'favoriteDorms') {
-        loadFavorites();
-      }
-    };
+     setFavoritedListings(normalizedDorms);
+     setFavoriteDorms(normalizedDorms.map((dorm) => dorm.id));
+   } catch (error) {
+     console.error("Failed to load favorite dorms:", error);
 
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also listen for custom event for same-tab updates
-    window.addEventListener('favoritesUpdated', loadFavorites);
+     if (showError) {
+       toast.error(error.message || "Failed to load favorite dorms");
+     }
+   }
+ };
 
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('favoritesUpdated', loadFavorites);
-    };
-  }, []);
 
-  // Load favorited listings when favorites change
-  useEffect(() => {
-    const userUniversity = userData.university || localStorage.getItem('userUniversity') || 'American University of Beirut (AUB)';
-    setFavoritedListings(getFavoritedListings(userUniversity));
-  }, [favoriteDorms, userData.university]);
+useEffect(() => {
+  if (userData.role !== "dorm_seeker") return;
+
+  loadFavoriteDorms(false);
+  const handleFavoritesUpdated = () => loadFavoriteDorms(true);
+
+
+  window.addEventListener("favoritesUpdated", handleFavoritesUpdated);
+
+  return () => {
+    window.removeEventListener("favoritesUpdated", handleFavoritesUpdated);
+  };
+}, [userData.role]);
+
+
 
   // Load joined carpools
   useEffect(() => {
@@ -387,23 +419,57 @@ export default function Profile() {
     setSearchParams({});
   };
 
-  const removeFavorite = (id) => {
-    removeFavoriteHelper(id, favoriteDorms, setFavoriteDorms);
-    
-    // Close modal if open
+const removeFavorite = async (id) => {
+  try {
+    await favoriteDormAPI.remove(id);
+
+    setFavoriteDorms((prev) => prev.filter((favId) => favId !== id));
+    setFavoritedListings((prev) => prev.filter((listing) => listing.id !== id));
+
     if (selectedListing?.id === id) {
       setSelectedListing(null);
     }
-  };
 
-  const toggleSaved = (id) => {
-    toggleFavorite(id, favoriteDorms, setFavoriteDorms);
-  };
+    window.dispatchEvent(new Event("favoritesUpdated"));
+    toast.success("Removed from favorites");
+  } catch (error) {
+    toast.error(error.message || "Failed to remove favorite");
+  }
+};
+
+const toggleSaved = async (id) => {
+  const isAlreadySaved = favoriteDorms.includes(id);
+
+  try {
+    if (isAlreadySaved) {
+      await favoriteDormAPI.remove(id);
+
+      setFavoriteDorms((prev) => prev.filter((favId) => favId !== id));
+      setFavoritedListings((prev) =>
+        prev.filter((listing) => listing.id !== id),
+      );
+
+      if (selectedListing?.id === id) {
+        setSelectedListing(null);
+      }
+    } else {
+      await favoriteDormAPI.add(id);
+      await loadFavoriteDorms();
+    }
+
+    window.dispatchEvent(new Event("favoritesUpdated"));
+  } catch (error) {
+    toast.error(error.message || "Failed to update favorite");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <DashboardNav userName={`${userData.firstName} ${userData.lastName}`.trim()} userType={userData.role} />
-      
+      <DashboardNav
+        userName={`${userData.firstName} ${userData.lastName}`.trim()}
+        userType={userData.role}
+      />
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Back Button */}
         <button
@@ -419,13 +485,17 @@ export default function Profile() {
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
             {/* Profile Picture */}
             <div className="relative flex-shrink-0">
-              <ProfilePicture 
-                src={isEditing ? editedData.profilePicture : userData.profilePicture}
+              <ProfilePicture
+                src={
+                  isEditing
+                    ? editedData.profilePicture
+                    : userData.profilePicture
+                }
                 alt="Profile"
                 size="xl"
                 className="border-4"
               />
-              
+
               {isEditing && (
                 <div className="absolute bottom-0 right-0 flex gap-2">
                   <label
@@ -459,8 +529,10 @@ export default function Profile() {
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2 break-words">
                 {userData.firstName} {userData.lastName}
               </h1>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4">{getRoleDisplayName(userData.role)}</p>
-              
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4">
+                {getRoleDisplayName(userData.role)}
+              </p>
+
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
@@ -484,7 +556,7 @@ export default function Profile() {
         />
 
         {/* Class Schedule Section - Only show for carpool users */}
-        {userData.role === 'carpool' && (
+        {userData.role === "carpool" && (
           <ClassScheduleSection
             classSchedule={classSchedule}
             carpoolRegion={carpoolRegion}
@@ -497,22 +569,20 @@ export default function Profile() {
         )}
 
         {/* Joined Carpools Section - Only show for carpool users */}
-        {userData.role === 'carpool' && (
+        {userData.role === "carpool" && (
           <JoinedCarpoolsSection joinedCarpools={joinedCarpools} />
         )}
 
         {/* Lifestyle Preferences Section - Only show for dorm_seeker and dorm_provider */}
-        {userData.role !== 'carpool' && (
+        {userData.role !== "carpool" && (
           <LifestylePreferencesSection navigate={navigate} />
         )}
 
         {/* My Roommates Section - Only show for dorm_seeker and dorm_provider */}
-        {userData.role !== 'carpool' && (
-          <RoommateSection />
-        )}
+        {userData.role !== "carpool" && <RoommateSection />}
 
         {/* Favorite Dorms Section - Only show for dorm_seeker */}
-        {userData.role === 'dorm_seeker' && (
+        {userData.role === "dorm_seeker" && (
           <FavoriteDormsSection
             favoritedListings={favoritedListings}
             handleViewDetails={handleViewDetails}
@@ -549,6 +619,7 @@ export default function Profile() {
           handleWhatsApp={handleWhatsApp}
           handleViewProviderProfile={handleViewProviderProfile}
           handleCloseListing={handleCloseModal}
+          userUniversity={userData.university}
         />
       )}
     </div>

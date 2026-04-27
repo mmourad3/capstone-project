@@ -98,7 +98,7 @@ export default function LifestyleQuestionnaire() {
 
   const handleSubmit = async () => {
     try {
-      await questionnaireAPI.save(formData);
+      const result = await questionnaireAPI.save(formData);
 
       localStorage.removeItem("signupFormData");
 
@@ -109,7 +109,14 @@ export default function LifestyleQuestionnaire() {
         toast.success("Lifestyle preferences updated successfully!");
         navigate("/profile");
       } else {
-        toast.success("Questionnaire completed successfully!");
+        if (result.matchNotification?.matchCount > 0) {
+          const count = result.matchNotification.matchCount;
+          toast.success(
+            `Questionnaire completed! We found ${count} potential roommate ${count === 1 ? "match" : "matches"}.`,
+          );
+        } else {
+          toast.success("Questionnaire completed successfully!");
+        }
         navigateToDashboard(role, navigate);
       }
     } catch (error) {

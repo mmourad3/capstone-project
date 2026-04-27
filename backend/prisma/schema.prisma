@@ -21,7 +21,7 @@ model User {
   role              Role    
   
   university        String
-  gender            String
+  gender            Gender
   phone             String @unique
   country           String
   countryCode    String?
@@ -30,6 +30,7 @@ model User {
 
   // resetToken        String?
   // resetTokenExpiry  DateTime?
+  favoriteDorms FavoriteDorm[]
   
   createdAt         DateTime  @default(now())
   updatedAt DateTime @updatedAt
@@ -55,6 +56,11 @@ enum Role {
   dorm_provider
   carpool
 }
+enum Gender {
+  Male
+  Female
+}
+
 // ========================================
 // QUESTIONNAIRE (FOR DORM USERS)
 // ========================================
@@ -166,6 +172,7 @@ model DormListing {
   datePosted       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
+  favoritedBy FavoriteDorm[]
   applications    DormApplication[]
   
   @@index([posterId])
@@ -198,6 +205,22 @@ model DormApplication {
   @@index([status])
 }
 
+model FavoriteDorm {
+  id        String   @id @default(uuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  dormId    String
+  dorm      DormListing @relation(fields: [dormId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, dormId])
+  @@index([userId])
+  @@index([dormId])
+}
+
 // ========================================
 // CARPOOL LISTINGS
 // ========================================
@@ -211,7 +234,7 @@ model CarpoolListing {
   driverEmail       String
   driverPhone       String
   driverProfilePicture String?
-  driverGender      String
+  driverGender      Gender
   
   university        String
   region            String

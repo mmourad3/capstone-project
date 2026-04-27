@@ -32,14 +32,45 @@ export const authAPI = {
     if (!res.ok) throw new Error(result.message || "Login failed");
     return result;
   },
+  getMe: async () => {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: getAuthHeaders(),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message || "Failed to get user");
+    }
+
+    return result;
+  },
+  logout: () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userProfilePicture");
+    localStorage.removeItem("userPhone");
+    localStorage.removeItem("userGender");
+    localStorage.removeItem("userUniversity");
+    localStorage.removeItem("userCountryCode");
+    localStorage.removeItem("carpoolRegion");
+    localStorage.removeItem("classSchedule");
+  },
 
   checkEmailExists: async (email) => {
-    const res = await fetch(`${API_BASE}/auth/check-email?email=${encodeURIComponent(email)}`);
+    const res = await fetch(
+      `${API_BASE}/auth/check-email?email=${encodeURIComponent(email)}`,
+    );
     return res.json();
   },
 
   checkPhoneExists: async (phone) => {
-    const res = await fetch(`${API_BASE}/auth/check-phone?phone=${encodeURIComponent(phone)}`);
+    const res = await fetch(
+      `${API_BASE}/auth/check-phone?phone=${encodeURIComponent(phone)}`,
+    );
     return res.json();
   },
 };

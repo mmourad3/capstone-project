@@ -345,10 +345,21 @@ export function CreateCarpoolForm({
 
           {/* Tip */}
           <div className="bg-blue-50 dark:bg-blue-500/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3 sm:p-4">
-            <p className="text-xs sm:text-sm text-blue-900 dark:text-blue-300 flex items-center gap-1">
-              <Lightbulb className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              Tip: Your listing will remain active until you manually remove it. Carpools are expected to run for the entire semester. If you need to end it early, please notify your passengers in advance. Set a fair price and be clear about the pickup location.
-            </p>
+            <div className="flex items-start gap-2">
+              <Lightbulb className="w-4 h-4 text-blue-700 dark:text-blue-300 flex-shrink-0 mt-0.5" />
+              <div className="space-y-2">
+                <p className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-300">
+                  Carpool listings must be clear, fair, and safe.
+                </p>
+                <ul className="text-xs sm:text-sm text-blue-900 dark:text-blue-300 list-disc pl-4 space-y-1">
+                  <li>Only registered students can create or join carpools.</li>
+                  <li>Pickup location, destination, time, and cost must be accurate.</li>
+                  <li>Share fuel costs fairly. Do not create rides for profit.</li>
+                  <li>Use WhatsApp to communicate and notify passengers if you are late.</li>
+                  <li>Meet in safe public places and avoid unsafe driving, harassment, or illegal behavior.</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           {/* Action Buttons */}

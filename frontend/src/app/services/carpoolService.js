@@ -20,8 +20,8 @@ import { addPassengerToCarpool, leaveCarpoolInStorage } from '../utils/carpoolHe
 // CONFIGURATION
 // ============================================================================
 
-const USE_BACKEND = false; // 🔄 SET TO TRUE when backend is ready
-const API_BASE_URL = 'http://localhost:3001/api'; // 🔄 UPDATE to your backend URL
+const USE_BACKEND = true;
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // ============================================================================
 // API HELPER (for backend calls)
@@ -32,8 +32,9 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     method,
     headers: {
       'Content-Type': 'application/json',
-      // Add auth token if needed:
-      // 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      ...(localStorage.getItem('authToken') && {
+        Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+      }),
     }
   };
 
@@ -289,7 +290,10 @@ export const carpoolService = {
   async getJoinedCarpools(userId) {
     if (USE_BACKEND) {
       // 🌐 BACKEND: GET from API
-      return await apiCall(`/users/${userId}/joined-carpools`);
+      const carpools = await apiCall('/carpools');
+      return carpools
+        .filter(carpool => carpool.passengers?.some(passenger => passenger.id === userId))
+        .map(carpool => carpool.id);
     } else {
       // 💾 LOCALSTORAGE: Read from localStorage
       return JSON.parse(localStorage.getItem('joinedCarpools') || '[]');

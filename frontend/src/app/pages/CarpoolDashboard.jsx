@@ -19,7 +19,7 @@ import {
 } from "../utils/carpoolHelpers";
 import { contactCarpoolDriver } from "../utils/whatsappUtils";
 import carpoolService from "../services/carpoolService";
-import { generateDemoCarpools, DEMO_USERS } from "../data/demoData";
+import { DEMO_USERS } from "../data/demoData";
 import { filterCarpoolUsersByGender } from "../utils/genderFilterHelpers";
 
 /**
@@ -118,60 +118,19 @@ export default function CarpoolDashboard() {
   }, [allCarpools]);
   */
 
-  const loadCarpools = () => {
-    let storedCarpools = JSON.parse(localStorage.getItem('carpoolListings') || '[]');
-    
-    // Generate demo carpools if none exist
-    if (storedCarpools.length === 0) {
-      const demoCarpools = generateDemoCarpools(userRegion, userUniversity);
-      localStorage.setItem('carpoolListings', JSON.stringify(demoCarpools));
-      storedCarpools = demoCarpools;
-    }
-    
-    // UPDATE PROFILE PICTURES FROM LOCALSTORAGE FOR CURRENT USER'S CARPOOLS
-    storedCarpools = storedCarpools.map(carpool => {
-      if (carpool.driverId === userId) {
-        // Get profile picture from localStorage (try both keys)
-        const profilePic = localStorage.getItem('userProfilePicture') || localStorage.getItem('profilePicture') || '';
-        return {
-          ...carpool,
-          driverProfilePicture: profilePic
-        };
-      }
-      return carpool;
-    });
-    
-    // Save updated carpools back
-    localStorage.setItem('carpoolListings', JSON.stringify(storedCarpools));
-    
-    setAllCarpools(storedCarpools);
-    const userCarpools = storedCarpools.filter(
+  const loadCarpools = async () => {
+    const carpools = await carpoolService.getAllCarpools();
+
+    setAllCarpools(carpools);
+    const userCarpools = carpools.filter(
       carpool => carpool.driverId === userId && carpool.status !== "Deleted"
     );
     setMyCarpools(userCarpools);
   };
 
-  const loadJoinedRides = () => {
-    const storedJoinedRides = JSON.parse(localStorage.getItem('joinedCarpools') || '[]');
-    
-    // ⚠️ DISABLED FOR DEMO - RE-ENABLE WHEN ADDING BACKEND
-    // With backend: When driver deletes carpool → backend removes carpool ID from all passengers' joinedCarpools arrays
-    // This localStorage validation is unnecessary with proper backend cascade deletes
-    /*
-    const allCarpoolIds = allCarpools.map(c => c.id);
-    const validJoinedRides = storedJoinedRides.filter(carpoolId => allCarpoolIds.includes(carpoolId));
-    
-    if (validJoinedRides.length !== storedJoinedRides.length) {
-      localStorage.setItem('joinedCarpools', JSON.stringify(validJoinedRides));
-      const removedCount = storedJoinedRides.length - validJoinedRides.length;
-      if (removedCount > 0) {
-        toast.info(`${removedCount} carpool${removedCount > 1 ? 's' : ''} you joined ${removedCount > 1 ? 'have' : 'has'} been deleted by the driver.`);
-      }
-    }
-    setJoinedRides(validJoinedRides);
-    */
-    
-    setJoinedRides(storedJoinedRides);
+  const loadJoinedRides = async () => {
+    const userJoinedRides = await carpoolService.getJoinedCarpools(userId);
+    setJoinedRides(userJoinedRides);
   };
 
   // Handle joining a ride

@@ -20,7 +20,7 @@ import { createScheduleHelpers } from '../utils/scheduleHelpers';
 import { handleProfilePictureUpload } from '../utils/profileHelpers';
 import { authAPI } from "../services/api";
 import { navigateToDashboard } from "../utils/navigationHelpers";
-import { saveAuthUser } from "../utils/authStorage";
+import { useAuth } from "../contexts/AuthContext";
 
 const groupedUniversities = getGroupedUniversities();
 const isPhoneValid = (phoneValue, countryValue) => {
@@ -38,6 +38,7 @@ const isPhoneValid = (phoneValue, countryValue) => {
 };
 
 export default function SignUp() {
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   // Refs for scrolling to errors
@@ -392,9 +393,7 @@ export default function SignUp() {
         profilePicture: null,
       };
 
-      const response = await authAPI.register(signupData);
-
-      saveAuthUser(response);
+      const response = await register(signupData);
 
       if (response.user.role === "carpool") {
         navigateToDashboard(response.user.role, navigate);

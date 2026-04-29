@@ -85,12 +85,46 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, []);
 
-  const login = async (email, password) => {
-    return authAPI.login(email, password);
+  const login = async (data) => {
+    const result = await authAPI.login(data);
+
+    localStorage.setItem("authToken", result.token);
+
+    const freshUser = await authAPI.getMe();
+
+    const normalizedUser = {
+      ...freshUser,
+      name:
+        freshUser.name ||
+        `${freshUser.firstName || ""} ${freshUser.lastName || ""}`.trim(),
+    };
+
+    saveUserToStorage(normalizedUser);
+    setUser(normalizedUser);
+    setIsAuthenticated(true);
+
+    return result;
   };
 
   const register = async (userData) => {
-    return authAPI.register(userData);
+    const result = await authAPI.register(userData);
+
+    localStorage.setItem("authToken", result.token);
+
+    const freshUser = await authAPI.getMe();
+
+    const normalizedUser = {
+      ...freshUser,
+      name:
+        freshUser.name ||
+        `${freshUser.firstName || ""} ${freshUser.lastName || ""}`.trim(),
+    };
+
+    saveUserToStorage(normalizedUser);
+    setUser(normalizedUser);
+    setIsAuthenticated(true);
+
+    return result;
   };
 
   const logout = () => {

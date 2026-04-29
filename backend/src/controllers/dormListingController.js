@@ -1,4 +1,5 @@
 import { DormListingModel } from "../models/DormListingModel.js";
+import { RoommateModel } from "../models/RoommateModel.js";
 
 export const getAllDormListings = async (req, res) => {
   try {
@@ -67,6 +68,9 @@ export const updateDormListing = async (req, res) => {
 
     const dorm = await DormListingModel.update(req.params.id, req.body);
 
+    if (dorm.status === "Inactive") {
+      await RoommateModel.deletePendingRequestsByDormId(dorm.id);
+    }
     return res.json({
       message: "Dorm listing updated successfully",
       dorm,

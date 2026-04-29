@@ -8,13 +8,13 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { authAPI } from "../services/api";
 import { toast } from "react-toastify";
-import { saveAuthUser } from "../utils/authStorage";
 import { navigateToDashboard } from "../utils/navigationHelpers";
 import { isValidUniversityEmail } from "../config/universityConfig";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Login() {
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState(() => {
     // Load remembered email if exists
@@ -42,11 +42,10 @@ export default function Login() {
     }
     
     try {
-      const response = await authAPI.login({ 
-        email: email.toLowerCase().trim(), 
-        password 
+      const response = await login({
+        email: email.toLowerCase().trim(),
+        password,
       });
-      saveAuthUser(response);
 
       // Handle Remember Me functionality
       if (rememberMe) {

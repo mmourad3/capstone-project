@@ -127,25 +127,6 @@ const handleRejectRequest = async (requestId) => {
     setShowFeedbackModal(true);
   };
 
-  const handleFeedbackSubmit = async (feedbackData) => {
-    if (!selectedRoommate) return;
-
-    try {
-      await roommateAPI.endRelationship(selectedRoommate.id);
-      await roommateAPI.submitFeedback(selectedRoommate.id, feedbackData);
-
-      toast.success("Roommate relationship ended");
-      setShowFeedbackModal(false);
-      setSelectedRoommate(null);
-
-      fetchRoommateData();
-      window.dispatchEvent(new Event("roommateDataChanged"));
-      window.dispatchEvent(new Event("roommateEnded"));
-    } catch (error) {
-      toast.error(error.message || "Failed to end roommate relationship");
-    }
-  };
-
   const handleContactWhatsApp = (roommate) => {
     const roommatePhone = roommate.roommatePhone;
 
@@ -378,8 +359,10 @@ const handleRejectRequest = async (requestId) => {
           onClose={() => {
             setShowFeedbackModal(false);
             setSelectedRoommate(null);
+            fetchRoommateData();
+            window.dispatchEvent(new Event("roommateDataChanged"));
+            window.dispatchEvent(new Event("roommateEnded"));
           }}
-          onSubmit={handleFeedbackSubmit}
         />
       )}
     </>

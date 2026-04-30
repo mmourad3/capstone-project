@@ -126,6 +126,20 @@ export const userAPI = {
     if (!res.ok) throw new Error(result.message || "Upload failed");
     return result;
   },
+
+  getById: async (id) => {
+    const res = await fetch(`${API_BASE}/auth/users/${id}`, {
+      headers: getAuthHeaders(),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message || "Failed to fetch user profile");
+    }
+
+    return result;
+  },
 };
 
 

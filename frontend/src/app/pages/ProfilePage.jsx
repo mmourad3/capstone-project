@@ -5,24 +5,17 @@ import { ProfilePicture } from '../components/ProfilePicture';
 import { navigateToDashboard, getRoleDisplayName } from '../utils/navigationHelpers';
 import ProfileView from "../components/ProfileView";
 import { contactDormSeeker } from '../utils/whatsappUtils';
+import { userAPI, questionnaireAPI } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
-/**
- * ProfilePage - View OTHER Users' Profiles
- * 
- * Displays user profiles with intelligent role-based features:
- * - Seekers viewing providers: Shows "Request as Roommate" button
- * - Providers viewing seekers: Shows "Contact" button (opens WhatsApp)
- * 
- * NOTE: This page is ONLY for viewing OTHER users' profiles.
- * For viewing your own profile, use /profile (Profile.jsx)
- * If you try to view your own profile here, you'll be redirected to /profile
- */
 export default function ProfilePage() {
   const { userId, providerId } = useParams(); // Handle both route params
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [viewerQuestionnaire, setViewerQuestionnaire] = useState(null);
 
   // Get where we came from via URL parameter
   const searchParams = new URLSearchParams(location.search);
@@ -40,197 +33,123 @@ export default function ProfilePage() {
     }
   };
 
+  const parseArrayField = (value) => {
+    if (Array.isArray(value)) return value;
+    if (!value) return [];
+
+    try {
+      return JSON.parse(value);
+    } catch {
+      return [];
+    }
+  };
+
+  const normalizeQuestionnaire = (questionnaire) => {
+    if (!questionnaire) return null;
+
+    return {
+      ...questionnaire,
+      interests: parseArrayField(questionnaire.interests),
+      personalQualities: parseArrayField(questionnaire.personalQualities),
+      importantQualities: parseArrayField(questionnaire.importantQualities),
+      dealBreakers: parseArrayField(questionnaire.dealBreakers),
+    };
+  };
+
   useEffect(() => {
     const loadUserProfile = async () => {
       setLoading(true);
-      
-      // TODO: Backend Integration
-      // const response = await fetch(`/api/users/${userId || providerId}/profile`);
-      // const data = await response.json();
-      // setProfile(data);
-      
-      // DEMO MODE - Load from localStorage
-      const targetUserId = userId || providerId; // Support both route params
-      const decodedUserId = decodeURIComponent(targetUserId);
-      
-      // Check if viewing own profile
-      const currentUserId = localStorage.getItem('userId');
-      const currentUserEmail = localStorage.getItem('userEmail');
-      
-      // OPTION 1: Redirect to own profile page if viewing own profile
-      if (decodedUserId === currentUserId || decodedUserId === currentUserEmail) {
-        navigate('/profile');
-        setLoading(false);
-        return;
-      }
-      
-      // DEMO MODE: Check posted dorms, demo data, and registered users
-      let foundUser = null;
-      let userEmail = decodedUserId;
-      
-      // First check posted dorms
-      const postedDorms = JSON.parse(localStorage.getItem('postedDorms') || '[]');
-      let demoListing = postedDorms.find(d => 
-        d.posterId === decodedUserId || 
-        d.posterEmail === decodedUserId
-      );
-      
-      // Also check demo mock listings (stored in DormSeekerDashboard)
-      if (!demoListing) {
-        // Try to get from demo users stored in localStorage
-        const demoUsers = JSON.parse(localStorage.getItem('demoUsers') || '[]');
-        demoListing = demoUsers.find(u => 
-          u.posterId === decodedUserId || 
-          u.posterEmail === decodedUserId ||
-          u.userId === decodedUserId ||
-          u.email === decodedUserId
-        );
-      }
-      
-      if (demoListing) {
-        // Create user object from listing data
-        foundUser = {
-          userId: demoListing.posterId || demoListing.userId || demoListing.posterEmail,
-          email: demoListing.posterEmail || demoListing.email,
-          name: demoListing.posterName || demoListing.poster || demoListing.name || 'User',
-          gender: demoListing.posterGender || demoListing.gender || 'Not specified',
-          profilePicture: demoListing.posterProfilePic || demoListing.profilePicture,
-          role: demoListing.role || 'dorm_provider', // Since they posted a dorm
-          phone: demoListing.posterPhone || demoListing.phone
-        };
-        userEmail = foundUser.email;
-      } else {
-        // Check registered users
-        const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-        foundUser = registeredUsers.find(u => u.userId === decodedUserId);
-        
-        if (foundUser) {
-          userEmail = foundUser.email;
-        } else {
-          foundUser = registeredUsers.find(u => u.email === decodedUserId);
-          if (foundUser) {
-            userEmail = decodedUserId;
+
+      try {
+        const targetUserId = userId || providerId;
+
+        if (!targetUserId) {
+          setProfile(null);
+          return;
+        }
+
+        if (user && targetUserId === user.id) {
+          navigate("/profile");
+          return;
+        }
+
+        const data = await userAPI.getById(targetUserId);
+        const viewerData = await questionnaireAPI.getMe().catch(() => null);
+        const normalizedViewerQuestionnaire =normalizeQuestionnaire(viewerData);
+        const normalizedProfileQuestionnaire = normalizeQuestionnaire(data.questionnaire);
+
+        const fullName =
+          data.name || `${data.firstName || ""} ${data.lastName || ""}`.trim();
+
+        const parseArrayField = (value) => {
+          if (Array.isArray(value)) return value;
+          if (!value) return [];
+
+          try {
+            return JSON.parse(value);
+          } catch {
+            return [];
           }
-        }
-      }
-      
-      if (foundUser) {
-        // Load their questionnaire data from user-scoped storage
-        const getOtherUserQuestionnaire = (userId) => {
-          const key = `user_${userId}_questionnaire`;
-          const data = localStorage.getItem(key);
-          return data ? JSON.parse(data) : null;
         };
-        
-        // Try to get questionnaire by userId first, then by email
-        let otherUserQuestionnaire = getOtherUserQuestionnaire(foundUser.userId);
-        if (!otherUserQuestionnaire && foundUser.email) {
-          otherUserQuestionnaire = getOtherUserQuestionnaire(foundUser.email);
-        }
-        
-        const userQuestionnaire = otherUserQuestionnaire || {
-          sleepSchedule: 'Early Bird',
-          wakeUpTime: '6-7 AM',
-          sleepTime: 'Before 10 PM',
-          cleanliness: 'Moderately Clean',
-          organizationLevel: 'Moderately Organized',
-          socialLevel: 'Moderately Social',
-          guestFrequency: 'Occasionally (1-2 times/week)',
-          sharedSpaces: 'Very Comfortable',
-          smoking: 'No',
-          drinking: 'Socially',
-          pets: 'No Pets - Open to Them',
-          studyTime: 'Evening',
-          noiseLevel: 'Moderate',
-          musicWhileStudying: 'No',
-          temperaturePreference: 'Cool',
-          sharingItems: 'Yes',
-          interests: ['Fitness', 'Cooking', 'Travel', 'Photography'],
-          personalQualities: ['Friendly', 'Supportive', 'Honest'],
-          importantQualities: ['Respect', 'Cleanliness', 'Communication', 'Responsibility'],
-          dealBreakers: ['Smoking', 'Messiness', 'Loud parties']
-        };
-        
-        const hasQuestionnaireData = otherUserQuestionnaire !== null;
-        
-        // Extract university from email domain
-        const emailDomain = userEmail.split('@')[1];
-        let university = 'University';
-        if (emailDomain === 'aub.edu.lb') university = 'American University of Beirut';
-        else if (emailDomain === 'lau.edu.lb') university = 'Lebanese American University';
-        else if (emailDomain === 'usj.edu.lb') university = 'Saint Joseph University';
-        else if (emailDomain === 'ul.edu.lb') university = 'Lebanese University';
-        else if (emailDomain === 'balamand.edu.lb') university = 'University of Balamand';
-        else university = emailDomain;
+
+        const questionnaire = data.questionnaire
+          ? {
+              ...data.questionnaire,
+              interests: parseArrayField(data.questionnaire.interests),
+              personalQualities: parseArrayField(
+                data.questionnaire.personalQualities,
+              ),
+              importantQualities: parseArrayField(
+                data.questionnaire.importantQualities,
+              ),
+              dealBreakers: parseArrayField(data.questionnaire.dealBreakers),
+            }
+          : null;
         
         setProfile({
-          name: foundUser.name,
-          email: userEmail,
-          userId: foundUser.userId,
-          gender: foundUser.gender || 'Not specified',
-          university: university,
-          profilePicture: foundUser.profilePicture,
-          role: foundUser.role || 'dorm_seeker',
-          phone: foundUser.phone,
-          questionnaire: userQuestionnaire,
-          hasCompletedQuestionnaire: hasQuestionnaireData
+          name: fullName,
+          email: data.email,
+          userId: data.id,
+          gender: data.gender || "Not specified",
+          university: data.university || "University",
+          profilePicture: data.profilePicture,
+          role: data.role || "dorm_seeker",
+          phone: data.phone,
+          questionnaire: normalizedProfileQuestionnaire,
+          hasCompletedQuestionnaire: !!normalizedProfileQuestionnaire,
         });
-      } else {
+        setViewerQuestionnaire(normalizedViewerQuestionnaire);
+      } catch (error) {
+        console.error("Failed to load user profile:", error);
         setProfile(null);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     loadUserProfile();
-  }, [userId, providerId]);
+  }, [userId, providerId, user, navigate]);
 
-  // Determine if "Request as Roommate" button should be shown
   const shouldShowRequestButton = () => {
-    if (!profile) return false;
-    
-    const currentUserId = localStorage.getItem('userId');
-    const currentUserRole = localStorage.getItem('userRole');
-    
-    // Don't show button if viewing own profile
-    if (profile.userId === currentUserId) return false;
-    
-    // Show button only if:
-    // - Current user is a dorm_seeker (looking for dorms)
-    // - AND the profile being viewed is a dorm_provider (has a dorm)
-    return currentUserRole === 'dorm_seeker' && profile.role === 'dorm_provider';
+    if (!profile || !user) return false;
+
+    if (profile.userId === user.id) return false;
+
+    return user.role === "dorm_seeker" && profile.role === "dorm_provider";
   };
 
-  // Determine if "Contact" button should be shown
   const shouldShowContactButton = () => {
-    if (!profile) return false;
-    
-    const currentUserId = localStorage.getItem('userId');
-    const currentUserRole = localStorage.getItem('userRole');
-    
-    // Don't show button if viewing own profile
-    if (profile.userId === currentUserId) return false;
-    
-    // Show button only if:
-    // - Current user is a dorm_provider (has a dorm)
-    // - AND the profile being viewed is a dorm_seeker (looking for dorms)
-    return currentUserRole === 'dorm_provider' && profile.role === 'dorm_seeker';
+    if (!profile || !user) return false;
+
+    if (profile.userId === user.id) return false;
+
+    return user.role === "dorm_provider" && profile.role === "dorm_seeker";
   };
 
-  // Get viewer's questionnaire for compatibility (user-scoped)
-  const getViewerQuestionnaire = () => {
-    const userId = localStorage.getItem('userId');
-    if (!userId) return null;
-    const key = `user_${userId}_questionnaire`;
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : null;
-  };
-  const viewerQuestionnaire = getViewerQuestionnaire();
-
-  // Handle contact
+    // Handle contact
   const handleContact = (targetProfile) => {
-    const currentUserName = localStorage.getItem('userName');
-    const currentUserEmail = localStorage.getItem('userEmail');
+    const currentUserName = user?.name || `${user?.firstName || ""} ${user?.lastName || ""}`.trim();
+    const currentUserEmail = user?.email || "";
     
     // Use the contactDormSeeker utility function
     contactDormSeeker(targetProfile, currentUserName, currentUserEmail);

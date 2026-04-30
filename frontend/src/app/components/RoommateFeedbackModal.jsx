@@ -1,13 +1,9 @@
-//KEEP FOR AI. DONT DELETE
-
-
-
 import { useState } from 'react';
 import { X, Star, Lock } from 'lucide-react';
 import { roommateAPI } from '../services/api';
 import { toast } from 'react-toastify';
 
-export default function RoommateFeedbackModal({ roommate, onClose, onSubmit }) {
+export default function RoommateFeedbackModal({ roommate, onClose}) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -62,8 +58,8 @@ export default function RoommateFeedbackModal({ roommate, onClose, onSubmit }) {
     setIsSubmitting(true);
     try {
       await roommateAPI.submitFeedback(roommate.id, formData);
-      toast.success('Thank you for your feedback!');
-      onSubmit?.();
+      await roommateAPI.endRelationship(roommate.id);
+      toast.success("Thank you for your feedback!");
       onClose();
     } catch (error) {
       console.log('Backend not available - saving feedback locally');

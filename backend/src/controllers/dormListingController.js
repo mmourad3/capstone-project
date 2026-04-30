@@ -68,7 +68,7 @@ export const updateDormListing = async (req, res) => {
 
     const dorm = await DormListingModel.update(req.params.id, req.body);
 
-    if (dorm.status === "Inactive") {
+    if (dorm.status === "Inactive" || dorm.status === "Found Roommate") {
       await RoommateModel.deletePendingRequestsByDormId(dorm.id);
     }
     return res.json({

@@ -145,6 +145,17 @@ export const RoommateModel = {
     });
   },
 
+  findUserForRequest: async (userId) => {
+    return prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        role: true,
+        gender: true,
+      },
+    });
+  },
+
   createRequest: async ({ senderId, recipientId, dormId }) => {
     return prisma.roommateRequest.create({
       data: {
@@ -215,7 +226,7 @@ export const RoommateModel = {
 
       await tx.dormListing.update({
         where: { id: request.dormId },
-        data: { status: "Inactive" },
+        data: { status: "Found Roommate" },
       });
 
       await tx.roommateRequest.deleteMany({

@@ -59,6 +59,30 @@ export const FavoriteDormModel = {
     }));
   },
 
+  findUserForFavorite: async (userId) => {
+    return prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        role: true,
+        gender: true,
+      },
+    });
+  },
+
+  findDormForFavorite: async (dormId) => {
+    return prisma.dormListing.findUnique({
+      where: { id: dormId },
+      include: {
+        poster: {
+          select: {
+            gender: true,
+          },
+        },
+      },
+    });
+  },
+
   add: async (userId, dormId) => {
     return prisma.favoriteDorm.upsert({
       where: {

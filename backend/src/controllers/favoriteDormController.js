@@ -28,6 +28,34 @@ export const addFavoriteDorm = async (req, res) => {
       return res.status(400).json({ message: "Dorm ID is required" });
     }
 
+    const user = await FavoriteDormModel.findUserForFavorite(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.role !== "dorm_seeker") {
+      return res.status(403).json({
+        message: "Only dorm seekers can favorite dorm listings",
+      });
+    }
+
+    const dorm = await FavoriteDormModel.findDormForFavorite(dormId);
+
+    if (!dorm) {
+      return res.status(404).json({ message: "Dorm listing not found" });
+    }
+
+    const seekerGender = user.gender?.toLowerCase();
+    const providerGender = dorm.poster?.gender?.toLowerCase();
+
+    if (dorm.genderPreference === "same" && seekerGender !== providerGender) {
+      return res.status(403).json({
+        message:
+          "You cannot favorite this dorm because it is restricted to the provider's same gender",
+      });
+    }
+
     await FavoriteDormModel.add(req.user.id, dormId);
 
     return res.status(201).json({ message: "Dorm added to favorites" });

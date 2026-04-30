@@ -110,6 +110,21 @@ export const sendRequest = async (req, res) => {
         message: "This dorm is no longer available",
       });
     }
+    const sender = await RoommateModel.findUserForRequest(req.user.id);
+
+    if (!sender) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const seekerGender = sender.gender?.toLowerCase();
+    const providerGender = dorm.poster?.gender?.toLowerCase();
+
+    if (dorm.genderPreference === "same" && seekerGender !== providerGender) {
+      return res.status(403).json({
+        message:
+          "You cannot request this dorm because it is restricted to the provider's same gender",
+      });
+    }
 
     const activeRelationship =
       await RoommateModel.findActiveRelationshipForUser(req.user.id);

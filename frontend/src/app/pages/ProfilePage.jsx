@@ -74,23 +74,17 @@ export default function ProfilePage() {
         }
 
         const data = await userAPI.getById(targetUserId);
+        const activeDorm = Array.isArray(data.dormListings)
+          ? data.dormListings.find((dorm) => dorm.status === "Active")
+          : null;
+
+        const requestDormId = dormId || activeDorm?.id || null;
         const viewerData = await questionnaireAPI.getMe().catch(() => null);
         const normalizedViewerQuestionnaire =normalizeQuestionnaire(viewerData);
         const normalizedProfileQuestionnaire = normalizeQuestionnaire(data.questionnaire);
 
         const fullName =
           data.name || `${data.firstName || ""} ${data.lastName || ""}`.trim();
-
-        const parseArrayField = (value) => {
-          if (Array.isArray(value)) return value;
-          if (!value) return [];
-
-          try {
-            return JSON.parse(value);
-          } catch {
-            return [];
-          }
-        };
 
         const questionnaire = data.questionnaire
           ? {
@@ -117,6 +111,7 @@ export default function ProfilePage() {
           phone: data.phone,
           questionnaire: normalizedProfileQuestionnaire,
           hasCompletedQuestionnaire: !!normalizedProfileQuestionnaire,
+          requestDormId,
         });
         setViewerQuestionnaire(normalizedViewerQuestionnaire);
       } catch (error) {
@@ -128,7 +123,7 @@ export default function ProfilePage() {
     };
 
     loadUserProfile();
-  }, [userId, providerId, user, navigate]);
+  }, [userId, providerId, user, navigate, dormId]);
 
   const shouldShowRequestButton = () => {
     if (!profile || !user) return false;
@@ -165,6 +160,7 @@ export default function ProfilePage() {
       loading={loading}
       onGoBack={handleGoBack}
       from={from}
+      dormId={profile?.requestDormId || dormId}
     />
   );
 }

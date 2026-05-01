@@ -127,6 +127,30 @@ export const RoommateModel = {
     );
   },
 
+  findPendingFeedbackForUser: async (userId) => {
+    const relationships = await prisma.roommateRelationship.findMany({
+      where: {
+        status: "Ended",
+        OR: [{ seekerId: userId }, { providerId: userId }],
+        feedback: {
+          none: {
+            reviewerId: userId,
+          },
+        },
+      },
+      include: {
+        seeker: { select: userSelect },
+        provider: { select: userSelect },
+        dorm: { select: dormSelect },
+      },
+      orderBy: { endedAt: "desc" },
+    });
+
+    return relationships.map((relationship) =>
+      formatRelationshipForUser(relationship, userId),
+    );
+  },
+
   findActiveRelationshipForUser: async (userId) => {
     return prisma.roommateRelationship.findFirst({
       where: {

@@ -260,7 +260,6 @@ model RoommateFeedback {
   roommate        User     @relation("RoommateFeedbackRoommate", fields: [roommateId], references: [id], onDelete: Cascade)
 
   rating          Int
-  review          String?  @db.Text
   endReason       String
   conflictType    String?
   importantFactor String

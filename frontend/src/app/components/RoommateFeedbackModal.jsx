@@ -3,7 +3,7 @@ import { X, Star, Lock } from 'lucide-react';
 import { roommateAPI } from '../services/api';
 import { toast } from 'react-toastify';
 
-export default function RoommateFeedbackModal({ roommate, onClose}) {
+export default function RoommateFeedbackModal({ roommate, onClose, endRelationshipAfterSubmit=true}) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -58,23 +58,14 @@ export default function RoommateFeedbackModal({ roommate, onClose}) {
     setIsSubmitting(true);
     try {
       await roommateAPI.submitFeedback(roommate.id, formData);
-      await roommateAPI.endRelationship(roommate.id);
+
+      if (endRelationshipAfterSubmit) {
+        await roommateAPI.endRelationship(roommate.id);
+      }
       toast.success("Thank you for your feedback!");
       onClose();
     } catch (error) {
-      console.log('Backend not available - saving feedback locally');
-      // Save to localStorage for demo
-      const feedbackHistory = JSON.parse(localStorage.getItem('roommateFeedback') || '[]');
-      feedbackHistory.push({
-        roommateId: roommate.id,
-        roommateName: roommate.name,
-        ...formData,
-        submittedAt: new Date().toISOString()
-      });
-      localStorage.setItem('roommateFeedback', JSON.stringify(feedbackHistory));
-      toast.success('Thank you for your feedback!');
-      onSubmit?.();
-      onClose();
+    toast.error(error.message || "Failed to submit feedback");
     } finally {
       setIsSubmitting(false);
     }

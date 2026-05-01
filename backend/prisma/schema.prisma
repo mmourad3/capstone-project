@@ -171,6 +171,7 @@ model DormListing {
   status          String   @default("Active") // "Active", "Inactive", "Found Roommate"  
   datePosted       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  lastActivatedAt DateTime?
   
   favoritedBy FavoriteDorm[]
   roommateRequests      RoommateRequest[]

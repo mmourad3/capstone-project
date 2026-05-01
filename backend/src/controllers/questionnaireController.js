@@ -1,12 +1,11 @@
 import { QuestionnaireModel } from "../models/QuestionnaireModel.js";
 import { prisma } from "../utils/database.js";
 import { calculateRoommateCompatibilityScore } from "../utils/roommateMatcher.js";
-import { sendRoommateMatchEmail } from "../services/emailService.js";
 
 const MATCH_THRESHOLD = 70;
 const DORM_ROLES = ["dorm_seeker", "dorm_provider"];
 
-const notifyUserAboutRoommateMatches = async (userId, questionnaire) => {
+const syncRoommateMatches = async (userId, questionnaire) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -75,19 +74,8 @@ const notifyUserAboutRoommateMatches = async (userId, questionnaire) => {
     ),
   );
 
-  if (matches.length === 0) {
-    return { matchCount: 0, emailSent: false };
-  }
-
-  const emailResult = await sendRoommateMatchEmail({
-    to: user.email,
-    firstName: user.firstName,
-    matchCount: matches.length,
-  });
-
   return {
     matchCount: matches.length,
-    emailSent: !emailResult.skipped,
   };
 };
 
@@ -101,20 +89,19 @@ export const saveQuestionnaire = async (req, res) => {
       req.body,
     );
 
-    let matchNotification = null;
+    let matchSync = null;
 
     if (!existingQuestionnaire) {
       try {
-        matchNotification = await notifyUserAboutRoommateMatches(
+        matchSync = await syncRoommateMatches(
           userId,
           questionnaire,
         );
-      } catch (notificationError) {
-        console.error("Roommate match notification error:", notificationError);
-        matchNotification = {
+      } catch (matchSyncError) {
+        console.error("Roommate match sync error:", matchSyncError);
+        matchSync = {
           matchCount: 0,
-          emailSent: false,
-          error: "Roommate notification failed",
+          error: "Roommate match sync failed",
         };
       }
     }
@@ -122,7 +109,8 @@ export const saveQuestionnaire = async (req, res) => {
     return res.json({
       message: "Questionnaire saved successfully",
       questionnaire,
-      matchNotification,
+      matchSync,
+      matchNotification: matchSync,
     });
   } catch (error) {
     console.error("Save questionnaire error:", error);

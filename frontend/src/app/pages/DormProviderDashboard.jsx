@@ -10,17 +10,7 @@ import { useUserData } from "../hooks/useUserData";
 import { availableAmenities } from "../constants/amenities";
 import { dormAPI } from "../services/api";
 
-/**
- * Dorm Provider Dashboard
- * Allows students to post and manage their dorm listings
- * 
- * ROLE RESTRICTION: Only 'dorm_provider' role users can access this dashboard.
- * Dorm_seekers and carpool users are redirected to their respective dashboards.
- */
-
-
 export default function DormProviderDashboard() {  
-  // Role protection hook - blocks non-dorm_provider users
   useRoleProtection('dorm_provider');
   
   // Get user data from centralized hook
@@ -44,17 +34,7 @@ export default function DormProviderDashboard() {
     images: []
   });
 
-  // Helper function to clean up all roommate requests for this provider
-  const cleanupProviderRequests = () => {
-    const requests = JSON.parse(localStorage.getItem('roommateRequests') || '[]');
-    
-    // Remove ALL requests where this provider is the recipient (incoming requests from seekers) - BACKEND-READY: Use userId
-    const updatedRequests = requests.filter(r => r.recipientUserId !== userId);
-    localStorage.setItem('roommateRequests', JSON.stringify(updatedRequests));
-    
-    // Dispatch event to refresh roommate sections
-    window.dispatchEvent(new Event('roommateDataChanged'));
-  };
+  
   
   // Check if user has a "Found Roommate" listing
   const hasFoundRoommate = postedDorms.some(dorm => dorm.status === 'Found Roommate');
@@ -116,8 +96,7 @@ try {
       await dormAPI.update(dorm.id, { status: "Inactive" });
     }
 
-    cleanupProviderRequests();
-
+  window.dispatchEvent(new Event("roommateDataChanged"));
     const response = await dormAPI.create({
       ...dormPayload,
       status: "Active",
@@ -272,12 +251,11 @@ const handleMarkInactive = async (dormId) => {
   ) {
     try {
       const response = await dormAPI.update(dormId, { status: "Inactive" });
-
+      window.dispatchEvent(new Event("roommateDataChanged"));
+      
       setPostedDorms((prev) =>
         prev.map((dorm) => (dorm.id === dormId ? response.dorm : dorm)),
       );
-
-      cleanupProviderRequests();
 
       toast.success(
         "Listing marked as inactive. Pending requests have been cleared.",

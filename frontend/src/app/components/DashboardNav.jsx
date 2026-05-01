@@ -3,10 +3,12 @@ import { GraduationCap, MapPin, LogOut, User, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import  DashboardLogoButton  from "./DashboardLogoButton";
 import { ThemeToggle } from "./ThemeToggle";
+import { useAuth } from "../contexts/AuthContext";
 
 export function DashboardNav({ userName, userType }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   // Redirect to home if not logged in
   useEffect(() => {
@@ -44,13 +46,16 @@ export function DashboardNav({ userName, userType }) {
               <User className="w-5 h-5" />
               {userName && <span className="font-medium">{userName}</span>}
             </Link>
-            <Link
-              to="/"
+            <button
+              onClick={() => {
+                logout();
+                navigate("/login");
+              }}
               className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
             >
               <LogOut className="w-5 h-5" />
               <span>Logout</span>
-            </Link>
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -81,14 +86,17 @@ export function DashboardNav({ userName, userType }) {
                 <User className="w-5 h-5" />
                 {userName && <span className="font-medium">{userName}</span>}
               </Link>
-              <Link
-                to="/"
-                onClick={() => setMobileMenuOpen(false)}
+              <button
+                onClick={() => {
+                  logout();
+                  setMobileMenuOpen(false);
+                  navigate("/login");
+                }}
                 className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition-colors px-2 py-2 cursor-pointer"
               >
                 <LogOut className="w-5 h-5" />
                 <span>Logout</span>
-              </Link>
+              </button>
             </div>
           </div>
         )}

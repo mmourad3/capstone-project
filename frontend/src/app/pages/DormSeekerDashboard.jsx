@@ -20,7 +20,7 @@ import { calculateDistanceToUniversity } from "../utils/universityCoordinates";
 import { DEMO_QUESTIONNAIRES } from "../data/demoData";
 import { calculateCompatibility } from "../utils/comprehensiveCompatibilityCalculator";
 import { contactDormProvider } from "../utils/whatsappUtils";
-import { toggleFavorite } from "../utils/favoritesHelpers";
+import { favoriteDormAPI } from "../services/api";
 import { matchesGenderPreference } from "../utils/genderFilterHelpers";
 import { dormAPI } from "../services/api";
 
@@ -158,7 +158,6 @@ const loadListings = async () => {
     setDormListings(listingsWithDistance);
     setLoading(false);
   } catch (error) {
-    toast.error(error.message || "Failed to load dorm listings");
     setLoading(false);
   }
 };
@@ -278,31 +277,54 @@ useEffect(() => {
     }
   });
 
-  const toggleSaved = (id) => {
-    toggleFavorite(id, savedListings, setSavedListings, 'favoriteDorms');
+  const toggleSaved = async (id) => {
+    const isAlreadySaved = savedListings.includes(id);
+
+    const updatedFavorites = isAlreadySaved
+      ? savedListings.filter((favId) => favId !== id)
+      : [...savedListings, id];
+
+    setSavedListings(updatedFavorites);
+
+    try {
+      if (isAlreadySaved) {
+        await favoriteDormAPI.remove(id);
+      } else {
+        await favoriteDormAPI.add(id);
+      }
+
+      window.dispatchEvent(new Event("favoritesUpdated"));
+    } catch (error) {
+      setSavedListings(savedListings);
+      toast.error(error.message || "Failed to update favorites");
+    }
   };
 
   // Load favorites from localStorage on mount
-  useEffect(() => {
-    const storedFavorites = localStorage.getItem('favoriteDorms');
-    if (storedFavorites) {
-      setSavedListings(JSON.parse(storedFavorites));
-    }
+useEffect(() => {
+  const loadFavorites = async (showError = false) => {
+    try {
+      const ids = await favoriteDormAPI.getIds();
+      setSavedListings(ids);
+    } catch (error) {
+      console.error("Failed to load favorite dorm IDs:", error);
 
-    // Listen for favorite updates from other components (like Profile page)
-    const handleFavoritesUpdate = () => {
-      const updatedFavorites = localStorage.getItem('favoriteDorms');
-      if (updatedFavorites) {
-        setSavedListings(JSON.parse(updatedFavorites));
+      if (showError) {
+        toast.error(error.message || "Failed to load favorites");
       }
-    };
+    }
+  };
 
-    window.addEventListener('favoritesUpdated', handleFavoritesUpdate);
+  loadFavorites(false);
 
-    return () => {
-      window.removeEventListener('favoritesUpdated', handleFavoritesUpdate);
-    };
-  }, []);
+  const handleFavoritesUpdated = () => loadFavorites(true);
+
+  window.addEventListener("favoritesUpdated", handleFavoritesUpdated);
+
+  return () => {
+    window.removeEventListener("favoritesUpdated", handleFavoritesUpdated);
+  };
+}, []);
 
   const toggleAmenityFilter = (amenity) => {
     if (amenitiesFilter.includes(amenity)) {

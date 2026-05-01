@@ -4,8 +4,9 @@ import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes.js";
 import questionnaireRoutes from "./routes/questionnaireRoutes.js";
 import dormListingRoutes from "./routes/dormListingRoutes.js";
+import favoriteDormRoutes from "./routes/favoriteDormRoutes.js";
 import geminiChatRoutes from "./routes/geminiChatRoutes.js";
-
+import roommateRoutes from "./routes/roommateRoutes.js";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use("/api/dorms", dormListingRoutes);
 app.use("/api/auth", userRoutes);
 app.use("/api/questionnaire", questionnaireRoutes);
+app.use("/api/favorite-dorms", favoriteDormRoutes);
 app.use("/api/gemini-chat", geminiChatRoutes);
-
+app.use("/api/roommates", roommateRoutes);
 export default app;

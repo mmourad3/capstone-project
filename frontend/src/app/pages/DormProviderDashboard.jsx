@@ -219,25 +219,44 @@ const handleToggleActive = async (dormId) => {
     return;
   }
 
-  try {
-    const activeDorms = postedDorms.filter(
-      (dorm) => dorm.status === "Active" && dorm.id !== dormId,
+  const activeDorms = postedDorms.filter(
+    (dorm) => dorm.status === "Active" && dorm.id !== dormId,
+  );
+
+  if (activeDorms.length > 0) {
+    const confirmed = confirm(
+      "Making this listing active will mark your current active listing as inactive and remove its pending roommate requests. Do you want to continue?",
     );
 
+    if (!confirmed) return;
+  }
+
+  try {
     for (const dorm of activeDorms) {
       await dormAPI.update(dorm.id, { status: "Inactive" });
     }
 
     const response = await dormAPI.update(dormId, { status: "Active" });
 
-    setPostedDorms((prev) => [
-      response.dorm,
-      ...prev
-        .filter((dorm) => dorm.id !== dormId)
-        .map((dorm) =>
-          dorm.status === "Active" ? { ...dorm, status: "Inactive" } : dorm,
-        ),
-    ]);
+    setPostedDorms((prev) => {
+      const updatedDorms = prev.map((dorm) => {
+        if (dorm.id === dormId) return response.dorm;
+        if (dorm.status === "Active") return { ...dorm, status: "Inactive" };
+        return dorm;
+      });
+
+      return [
+        response.dorm,
+        ...updatedDorms.filter((dorm) => dorm.id !== dormId),
+      ];
+    });
+
+    window.dispatchEvent(new Event("roommateDataChanged"));
+
+    toast.success("Listing is now active.", {
+      position: "top-right",
+      autoClose: 3000,
+    });
   } catch (error) {
     toast.error(error.message || "Failed to activate listing");
   }

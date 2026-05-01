@@ -135,21 +135,30 @@ export const sendRequest = async (req, res) => {
       });
     }
 
-    const pendingRequest = await RoommateModel.findPendingSentRequest(
-      req.user.id,
-    );
+const pendingRequest = await RoommateModel.findPendingSentRequest(req.user.id);
 
-    if (pendingRequest) {
-      return res.status(400).json({
-        message: "Cancel your pending request first",
-      });
-    }
+if (pendingRequest) {
+  return res.status(400).json({
+    message: "Cancel your pending request first",
+  });
+}
 
-    const request = await RoommateModel.createRequest({
-      senderId: req.user.id,
-      recipientId,
-      dormId,
-    });
+const pendingFeedback = await RoommateModel.findPendingFeedbackForUser(
+  req.user.id,
+);
+
+if (pendingFeedback.length > 0) {
+  return res.status(400).json({
+    message:
+      "Please submit feedback for your ended roommate relationship before sending a new request",
+  });
+}
+
+const request = await RoommateModel.createRequest({
+  senderId: req.user.id,
+  recipientId,
+  dormId,
+});
 
     return res.status(201).json({
       message: "Roommate request sent",
@@ -165,6 +174,21 @@ export const sendRequest = async (req, res) => {
     }
 
     return res.status(500).json({ message: "Failed to send roommate request" });
+  }
+};
+
+export const getPendingFeedback = async (req, res) => {
+  try {
+    const relationships = await RoommateModel.findPendingFeedbackForUser(
+      req.user.id,
+    );
+
+    return res.json(relationships);
+  } catch (error) {
+    console.error("Get pending feedback error:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch pending feedback" });
   }
 };
 

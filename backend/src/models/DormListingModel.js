@@ -80,9 +80,11 @@ export const DormListingModel = {
           select: posterSelect,
         },
       },
-      orderBy: {
-        datePosted: "desc",
-      },
+      orderBy: [
+        { status: "asc" },
+        { lastActivatedAt: "desc" },
+        { datePosted: "desc" },
+      ],
     });
 
     return parseDorms(dorms);

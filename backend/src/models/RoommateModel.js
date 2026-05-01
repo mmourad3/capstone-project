@@ -127,6 +127,30 @@ export const RoommateModel = {
     );
   },
 
+  findPendingFeedbackForUser: async (userId) => {
+    const relationships = await prisma.roommateRelationship.findMany({
+      where: {
+        status: "Ended",
+        OR: [{ seekerId: userId }, { providerId: userId }],
+        feedback: {
+          none: {
+            reviewerId: userId,
+          },
+        },
+      },
+      include: {
+        seeker: { select: userSelect },
+        provider: { select: userSelect },
+        dorm: { select: dormSelect },
+      },
+      orderBy: { endedAt: "desc" },
+    });
+
+    return relationships.map((relationship) =>
+      formatRelationshipForUser(relationship, userId),
+    );
+  },
+
   findActiveRelationshipForUser: async (userId) => {
     return prisma.roommateRelationship.findFirst({
       where: {
@@ -229,6 +253,10 @@ export const RoommateModel = {
         data: { status: "Found Roommate" },
       });
 
+      await tx.favoriteDorm.deleteMany({
+        where: { dormId: request.dormId },
+      });
+
       await tx.roommateRequest.deleteMany({
         where: {
           status: "Pending",
@@ -329,6 +357,9 @@ export const RoommateModel = {
         where: { id: relationship.dormId },
         data: { status: "Inactive" },
       });
+      await tx.favoriteDorm.deleteMany({
+        where: { dormId: relationship.dormId },
+      });
 
       return formatRelationshipForUser(updatedRelationship, currentUserId);
     });
@@ -364,7 +395,6 @@ export const RoommateModel = {
       },
       update: {
         rating: data.rating,
-        review: data.review || null,
         endReason: data.endReason,
         conflictType: data.conflictType || null,
         importantFactor: data.importantFactor,
@@ -374,7 +404,6 @@ export const RoommateModel = {
         reviewerId,
         roommateId,
         rating: data.rating,
-        review: data.review || null,
         endReason: data.endReason,
         conflictType: data.conflictType || null,
         importantFactor: data.importantFactor,

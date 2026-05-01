@@ -1,5 +1,6 @@
 import { DormListingModel } from "../models/DormListingModel.js";
 import { RoommateModel } from "../models/RoommateModel.js";
+import { FavoriteDormModel } from "../models/FavoriteDormModel.js";
 
 export const getAllDormListings = async (req, res) => {
   try {
@@ -40,8 +41,21 @@ export const getMyDormListings = async (req, res) => {
 
 export const createDormListing = async (req, res) => {
   try {
-    const dorm = await DormListingModel.create(req.user.id, req.body);
+    const pendingFeedback = await RoommateModel.findPendingFeedbackForUser(
+      req.user.id,
+    );
 
+    if (pendingFeedback.length > 0) {
+      return res.status(400).json({
+        message:
+          "Please submit feedback for your ended roommate relationship before creating a new dorm listing",
+      });
+    }
+
+    const dorm = await DormListingModel.create(req.user.id, {
+      ...req.body,
+      lastActivatedAt: req.body.status === "Active" ? new Date() : null,
+    });
     return res.status(201).json({
       message: "Dorm listing created successfully",
       dorm,
@@ -65,11 +79,32 @@ export const updateDormListing = async (req, res) => {
         .status(403)
         .json({ message: "You can only update your own listings" });
     }
+    if (
+      existingDorm.status === "Found Roommate" && req.body.status !== "Inactive") {
+      return res.status(400).json({
+        message:
+          "You cannot edit a listing with an active roommate. Please end the roommate relationship first.",
+      });
+    }
+    if (req.body.status === "Active") {
+      const pendingFeedback = await RoommateModel.findPendingFeedbackForUser(
+        req.user.id,
+      );
+
+      if (pendingFeedback.length > 0) {
+        return res.status(400).json({
+          message:
+            "Please submit feedback for your ended roommate relationship before activating a dorm listing",
+        });
+      }
+      req.body.lastActivatedAt = new Date();
+    }
 
     const dorm = await DormListingModel.update(req.params.id, req.body);
 
     if (dorm.status === "Inactive" || dorm.status === "Found Roommate") {
       await RoommateModel.deletePendingRequestsByDormId(dorm.id);
+      await FavoriteDormModel.deleteByDormId(dorm.id);
     }
     return res.json({
       message: "Dorm listing updated successfully",
@@ -93,6 +128,12 @@ export const deleteDormListing = async (req, res) => {
       return res
         .status(403)
         .json({ message: "You can only delete your own listings" });
+    }
+    if (existingDorm.status === "Found Roommate") {
+      return res.status(400).json({
+        message:
+          "You cannot delete a listing with an active roommate. Please end the roommate relationship first.",
+      });
     }
 
     await DormListingModel.delete(req.params.id);

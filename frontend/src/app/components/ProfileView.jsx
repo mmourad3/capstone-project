@@ -43,7 +43,8 @@ export default function ProfileView({
   onContact = null,
   onGoBack = null,
   from = null,
-  loading = false
+  loading = false,
+  dormId = null
 }) {
   const navigate = useNavigate();
   const [showCompatibilityInfo, setShowCompatibilityInfo] = useState(false);
@@ -156,41 +157,9 @@ export default function ProfileView({
                     name: profile.name,
                     picture: profile.profilePicture
                   }}
+                  dormId={dormId}
                   size="compact"
                 />
-                {/* Warning text for pending requests - only show when button is "Cannot Send Request" */}
-                {(() => {
-                  const currentUserId = localStorage.getItem('userId');
-                  const requests = JSON.parse(localStorage.getItem('roommateRequests') || '[]');
-                  
-                  // Check if there's a request to THIS specific user
-                  const requestToThisUser = requests.find(
-                    req => req.senderUserId === currentUserId && 
-                           req.recipientUserId === profile.userId && 
-                           req.status === 'pending'
-                  );
-                  
-                  // Check if there's ANY pending request
-                  const anyPendingRequest = requests.find(
-                    req => req.senderUserId === currentUserId && req.status === 'pending'
-                  );
-                  
-                  // Check if user has active roommate
-                  const roommates = JSON.parse(localStorage.getItem('activeRoommates') || '[]');
-                  const hasActiveRoommate = roommates.find(
-                    rm => rm.userId === currentUserId && rm.status === 'active'
-                  );
-                  
-                  // Only show warning if:
-                  // 1. User has a pending request (to anyone)
-                  // 2. NOT already requested THIS specific user
-                  // 3. User does NOT have an active roommate
-                  const shouldShowWarning = anyPendingRequest && !requestToThisUser && !hasActiveRoommate;
-                  
-                  return shouldShowWarning ? (
-                    <p className="text-xs text-orange-600 text-center font-medium mt-1.5">Cancel your pending request first</p>
-                  ) : null;
-                })()}
               </div>
             )}
             

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
+import { geminiChatAPI } from "../services/api";
 
 /**
  * AI Chatbot Component for UniMate
@@ -83,11 +84,13 @@ export function AIChatbot() {
     e.preventDefault();
     if (!inputMessage.trim()) return;
 
+    const messageToSend = inputMessage.trim();
+
     // Add user message
     const userMessage = {
       id: Date.now(),
       sender: 'user',
-      text: inputMessage,
+      text: messageToSend,
       timestamp: new Date(),
     };
 
@@ -95,18 +98,26 @@ export function AIChatbot() {
     setInputMessage('');
     setIsTyping(true);
 
-    // Simulate AI response (replace with actual API call)
-    setTimeout(() => {
-      const botResponse = generateBotResponse(inputMessage);
+    try {
+      const result = await geminiChatAPI.sendMessage({ message: messageToSend });
       const botMessage = {
         id: Date.now() + 1,
         sender: 'bot',
-        text: botResponse,
+        text: result.response || "Sorry, I could not answer that.",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      const errorMessage = {
+        id: Date.now() + 1,
+        sender: 'bot',
+        text: error.message || "Sorry, UniMate AI is unavailable right now. Please try again.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
   };
 
   // Mock AI responses - Replace with actual AI API call

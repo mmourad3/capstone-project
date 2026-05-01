@@ -492,6 +492,84 @@ export const roommateAPI = {
 };
 
 
-export const carpoolAPI = {};
+export const carpoolAPI = {
+  getAll: async () => {
+    const res = await fetch(`${API_BASE}/carpools`);
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || "Failed to fetch carpools");
+    return result;
+  },
+
+  getMine: async () => {
+    const res = await fetch(`${API_BASE}/carpools/my`, {
+      headers: getAuthHeaders(),
+    });
+    const result = await res.json();
+    if (!res.ok)
+      throw new Error(result.message || "Failed to fetch your carpools");
+    return result;
+  },
+
+  getJoined: async () => {
+    const res = await fetch(`${API_BASE}/carpools/joined`, {
+      headers: getAuthHeaders(),
+    });
+    const result = await res.json();
+    if (!res.ok)
+      throw new Error(result.message || "Failed to fetch joined carpools");
+    return result;
+  },
+
+  create: async (data) => {
+    const res = await fetch(`${API_BASE}/carpools`, {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await res.json().catch(() => ({}));
+
+    if (!res.ok) throw new Error(result.message || "Failed to create carpool");
+    return result.carpool || result;
+  },
+
+  join: async (id) => {
+    const res = await fetch(`${API_BASE}/carpools/${id}/join`, {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+    });
+
+    const result = await res.json().catch(() => ({}));
+
+    if (!res.ok) throw new Error(result.message || "Failed to join carpool");
+    return result.carpool || result;
+  },
+
+  leave: async (id) => {
+    const res = await fetch(`${API_BASE}/carpools/${id}/leave`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || "Failed to leave carpool");
+    return result.carpool || result;
+  },
+
+  delete: async (id) => {
+    const res = await fetch(`${API_BASE}/carpools/${id}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || "Failed to delete carpool");
+    return result;
+  },
+};
 export const messageAPI = {};
 

@@ -18,7 +18,7 @@ import {
   getDayAbbreviation
 } from "../utils/carpoolHelpers";
 import { contactCarpoolDriver } from "../utils/whatsappUtils";
-import carpoolService from "../services/carpoolService";
+import { carpoolAPI } from "../services/api";
 import { DEMO_USERS } from "../data/demoData";
 import { filterCarpoolUsersByGender } from "../utils/genderFilterHelpers";
 
@@ -119,7 +119,7 @@ export default function CarpoolDashboard() {
   */
 
   const loadCarpools = async () => {
-    const carpools = await carpoolService.getAllCarpools();
+    const carpools = await carpoolAPI.getAll();
 
     setAllCarpools(carpools);
     const userCarpools = carpools.filter(
@@ -129,8 +129,8 @@ export default function CarpoolDashboard() {
   };
 
   const loadJoinedRides = async () => {
-    const userJoinedRides = await carpoolService.getJoinedCarpools(userId);
-    setJoinedRides(userJoinedRides);
+    const joined = await carpoolAPI.getJoined();
+    setJoinedRides(joined.map((c) => c.id));
   };
 
   // Handle joining a ride
@@ -176,25 +176,9 @@ export default function CarpoolDashboard() {
 
     // Join carpool using carpoolService
     try {
-      await carpoolService.joinCarpool(ride.id, {
-        id: userId,
-        name: userName,
-        email: userEmail,
-        phone: userPhone,
-        countryCode: userCountryCode,
-        gender: userGender,
-        profilePicture: userProfilePicture
-      });
-      
-      // Update joined rides
-      const storedJoinedRides = JSON.parse(localStorage.getItem('joinedCarpools') || '[]');
-      if (!storedJoinedRides.includes(ride.id)) {
-        storedJoinedRides.push(ride.id);
-        localStorage.setItem('joinedCarpools', JSON.stringify(storedJoinedRides));
-      }
-      
-      // Update state directly instead of calling loadJoinedRides()
-      setJoinedRides(storedJoinedRides);
+      await carpoolAPI.join(ride.id);
+      await loadCarpools();
+      await loadJoinedRides();
       
       // Reload carpools to get updated data
       loadCarpools();
@@ -212,8 +196,9 @@ export default function CarpoolDashboard() {
   // Handle leaving a ride
   const handleLeaveRide = async (ride) => {
     try {
-      await carpoolService.leaveCarpool(ride.id, userId);
-      
+      await carpoolAPI.leave(ride.id);
+      await loadCarpools();
+      await loadJoinedRides();      
       // Update joined rides
       const storedJoinedRides = JSON.parse(localStorage.getItem('joinedCarpools') || '[]');
       const updatedJoinedRides = storedJoinedRides.filter(id => id !== ride.id);

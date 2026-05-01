@@ -1,18 +1,23 @@
 import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
 import {
-  createCarpool,
-  deleteCarpool,
   getAllCarpools,
-  getUserCarpools,
+  getCarpoolById,
+  getMyCarpools,
+  getJoinedCarpools,
+  createCarpool,
   joinCarpool,
   leaveCarpool,
-} from "../controllers/carpoolController.js";
+  deleteCarpool,
+} from "../controllers/CarpoolController.js";
 
 const router = express.Router();
 
 router.get("/", getAllCarpools);
-router.get("/user/:userId", protect, getUserCarpools);
+router.get("/my", protect, getMyCarpools);
+router.get("/joined", protect, getJoinedCarpools);
+router.get("/:id", getCarpoolById);
+
 router.post("/", protect, createCarpool);
 router.post("/:id/join", protect, joinCarpool);
 router.delete("/:id/leave", protect, leaveCarpool);

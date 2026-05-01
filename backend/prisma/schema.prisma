@@ -57,6 +57,8 @@ model User {
   @@index([email])
   @@index([university])
   @@index([role])
+  @@index([role, university, region])
+  @@index([role, gender])
 }
 
 
@@ -319,6 +321,7 @@ model CarpoolListing {
   @@index([driverId])
   @@index([university, region, status])
   @@index([date])
+  @@index([genderPreference])
 }
 
 model CarpoolPassenger {
@@ -330,7 +333,7 @@ model CarpoolPassenger {
   passengerEmail  String
   passengerPhone  String
   passengerProfilePicture String?
-  passengerGender String
+  passengerGender Gender
   
   carpoolId       String
   carpool         CarpoolListing @relation(fields: [carpoolId], references: [id], onDelete: Cascade)
@@ -338,10 +341,12 @@ model CarpoolPassenger {
   status          String   @default("Confirmed")
   
   joinedAt        DateTime @default(now())
+  updatedAt DateTime @updatedAt
   
   @@unique([passengerId, carpoolId])
   @@index([passengerId])
   @@index([carpoolId])
+  @@index([passengerId, status])
 }
 
 enum Role {

@@ -11,6 +11,7 @@ import {
   cancelRequest,
   endRelationship,
   submitFeedback,
+  getPendingFeedback
 } from "../controllers/roommateController.js";
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.get("/requests/incoming", protect, getIncomingRequests);
 router.get("/requests/sent", protect, getSentRequests);
 router.get("/active", protect, getActiveRoommates);
 router.get("/status", protect, getStatus);
+router.get("/feedback/pending", protect, getPendingFeedback);
 
 router.post("/requests", protect, sendRequest);
 router.patch("/requests/:id/accept", protect, acceptRequest);

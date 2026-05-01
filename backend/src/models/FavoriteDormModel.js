@@ -107,4 +107,10 @@ export const FavoriteDormModel = {
       },
     });
   },
+
+  deleteByDormId: async (dormId) => {
+    return prisma.favoriteDorm.deleteMany({
+      where: { dormId },
+    });
+  },
 };

@@ -43,6 +43,8 @@ export default function RoommateSection() {
   const [loading, setLoading] = useState(true);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [selectedRoommate, setSelectedRoommate] = useState(null);
+  const [pendingFeedback, setPendingFeedback] = useState([]);
+  const [feedbackOnlyRoommate, setFeedbackOnlyRoommate] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -72,15 +74,17 @@ document.addEventListener("visibilitychange", handleVisibilityChange);
   const fetchRoommateData = async () => {
     setLoading(true);
     try {
-      const [incoming, sent, roommates] = await Promise.all([
+      const [incoming, sent, roommates, feedbackNeeded] = await Promise.all([
         roommateAPI.getIncomingRequests(),
         roommateAPI.getSentRequests(),
         roommateAPI.getActiveRoommates(),
+        roommateAPI.getPendingFeedback(),
       ]);
 
       setPendingRequests(incoming);
       setSentRequests(sent);
       setActiveRoommates(roommates);
+      setPendingFeedback(feedbackNeeded);
     } catch (error) {
       toast.error("Failed to load roommate data");
     } finally {
@@ -271,7 +275,39 @@ const handleRejectRequest = async (requestId) => {
             </div>
           </div>
         )}
+        {pendingFeedback.length > 0 && (
+          <div className="mb-4 sm:mb-6">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
+              Feedback Required
+            </h3>
 
+            <div className="space-y-2 sm:space-y-3">
+              {pendingFeedback.map((relationship) => (
+                <div
+                  key={relationship.id}
+                  className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+                >
+                  <div>
+                    <p className="font-medium text-sm sm:text-base text-gray-900 dark:text-white">
+                      Feedback for {relationship.roommateName}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                      This roommate relationship has ended. Please submit your
+                      feedback.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setFeedbackOnlyRoommate(relationship)}
+                    className="w-full sm:w-auto px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-xs sm:text-sm font-medium cursor-pointer"
+                  >
+                    Submit Feedback
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {/* Active Roommates */}
         <div>
           <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
@@ -362,6 +398,17 @@ const handleRejectRequest = async (requestId) => {
             fetchRoommateData();
             window.dispatchEvent(new Event("roommateDataChanged"));
             window.dispatchEvent(new Event("roommateEnded"));
+          }}
+        />
+      )}
+      {feedbackOnlyRoommate && (
+        <RoommateFeedbackModal
+          roommate={feedbackOnlyRoommate}
+          endRelationshipAfterSubmit={false}
+          onClose={() => {
+            setFeedbackOnlyRoommate(null);
+            fetchRoommateData();
+            window.dispatchEvent(new Event("roommateDataChanged"));
           }}
         />
       )}

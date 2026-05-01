@@ -478,6 +478,17 @@ export const roommateAPI = {
     if (!res.ok) throw new Error(result.message || "Failed to submit feedback");
     return result;
   },
+
+  getPendingFeedback: async () => {
+    const res = await fetch(`${API_BASE}/roommates/feedback/pending`, {
+      headers: getAuthHeaders(),
+    });
+
+    const result = await res.json();
+    if (!res.ok)
+      throw new Error(result.message || "Failed to fetch pending feedback");
+    return result;
+  },
 };
 
 

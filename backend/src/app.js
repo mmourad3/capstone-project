@@ -8,6 +8,7 @@ import geminiChatRoutes from "./routes/geminiChatRoutes.js";
 import carpoolRoutes from "./routes/carpoolRoutes.js";
 import favoriteDormRoutes from "./routes/favoriteDormRoutes.js";
 import geminiChatRoutes from "./routes/geminiChatRoutes.js";
+import roommateRoutes from "./routes/roommateRoutes.js";
 
 dotenv.config();
 
@@ -24,5 +25,5 @@ app.use("/api/gemini-chat", geminiChatRoutes);
 app.use("/api/carpools", carpoolRoutes);
 app.use("/api/favorite-dorms", favoriteDormRoutes);
 app.use("/api/gemini-chat", geminiChatRoutes);
-
+app.use("/api/roommates", roommateRoutes);
 export default app;

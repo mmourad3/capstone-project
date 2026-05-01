@@ -39,7 +39,7 @@ export const router = createBrowserRouter([
       { path: "dashboard/dorm-seeker", Component: DormSeekerDashboard },
       { path: "dashboard/dorm-provider", Component: DormProviderDashboard },
       { path: "dashboard/carpool", Component: CarpoolDashboard },
-      { path: "*", Component: NotFound }, // Catch-all route for 404
+      { path: "*", Component: NotFound },
     ],
   },
 ]);

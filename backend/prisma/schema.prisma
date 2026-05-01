@@ -40,8 +40,16 @@ model User {
   classSchedule     ClassScheduleBlock[]
   
   dormListings      DormListing[]
-  dormApplicationsSent     DormApplication[] @relation("DormApplicant")
-  dormApplicationsReceived DormApplication[] @relation("DormOwner")
+
+  roommateRequestsSent     RoommateRequest[] @relation("RoommateRequestSender")
+  roommateRequestsReceived RoommateRequest[] @relation("RoommateRequestRecipient")
+
+  roommateAsSeeker         RoommateRelationship[] @relation("RoommateSeeker")
+  roommateAsProvider       RoommateRelationship[] @relation("RoommateProvider")
+
+  roommateFeedbackGiven    RoommateFeedback[] @relation("RoommateFeedbackReviewer")
+  roommateFeedbackReceived RoommateFeedback[] @relation("RoommateFeedbackRoommate")
+    
   
   carpoolListings   CarpoolListing[]
   carpoolPassengers CarpoolPassenger[]
@@ -51,15 +59,7 @@ model User {
   @@index([role])
 }
 
-enum Role {
-  dorm_seeker
-  dorm_provider
-  carpool
-}
-enum Gender {
-  Male
-  Female
-}
+
 
 // ========================================
 // QUESTIONNAIRE (FOR DORM USERS)
@@ -173,37 +173,15 @@ model DormListing {
   updatedAt       DateTime @updatedAt
   
   favoritedBy FavoriteDorm[]
-  applications    DormApplication[]
+  roommateRequests      RoommateRequest[]
+  roommateRelationships RoommateRelationship[]
   
   @@index([posterId])
   @@index([status])
   @@index([latitude, longitude])
 }
 
-model DormApplication {
-  id              String   @id @default(uuid())
-  
-  applicantId     String
-  applicant       User     @relation("DormApplicant", fields: [applicantId], references: [id], onDelete: Cascade)
-  
-  dormId          String
-  dorm            DormListing @relation(fields: [dormId], references: [id], onDelete: Cascade)
-  
-  ownerId         String
-  owner           User     @relation("DormOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  
-  message         String?  @db.Text
-  status          String   @default("Pending") // "Pending", "Accepted", "Rejected"
-  
-  createdAt       DateTime @default(now())
-  respondedAt     DateTime?
-  
-  @@unique([applicantId, dormId])
-  @@index([applicantId])
-  @@index([dormId])
-  @@index([ownerId])
-  @@index([status])
-}
+
 
 model FavoriteDorm {
   id        String   @id @default(uuid())
@@ -219,6 +197,80 @@ model FavoriteDorm {
   @@unique([userId, dormId])
   @@index([userId])
   @@index([dormId])
+}
+
+model RoommateRequest {
+  id          String   @id @default(uuid())
+
+  senderId    String
+  sender      User     @relation("RoommateRequestSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  recipientId String
+  recipient   User     @relation("RoommateRequestRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  dormId      String
+  dorm        DormListing @relation(fields: [dormId], references: [id], onDelete: Cascade)
+
+  status      RoommateRequestStatus @default(Pending)
+  createdAt   DateTime @default(now())
+
+  @@unique([senderId, dormId])
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([dormId])
+  @@index([status])
+}
+
+model RoommateRelationship {
+  id          String   @id @default(uuid())
+
+  seekerId    String
+  seeker      User     @relation("RoommateSeeker", fields: [seekerId], references: [id], onDelete: Cascade)
+
+  providerId  String
+  provider    User     @relation("RoommateProvider", fields: [providerId], references: [id], onDelete: Cascade)
+
+  dormId      String
+  dorm        DormListing @relation(fields: [dormId], references: [id], onDelete: Cascade)
+
+  
+  status      RoommateRelationshipStatus @default(Active)
+
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+
+  feedback    RoommateFeedback[]
+
+  @@index([seekerId])
+  @@index([providerId])
+  @@index([dormId])
+  @@index([status])
+}
+
+model RoommateFeedback {
+  id              String   @id @default(uuid())
+
+  relationshipId  String
+  relationship    RoommateRelationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+
+  reviewerId      String
+  reviewer        User     @relation("RoommateFeedbackReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  roommateId      String
+  roommate        User     @relation("RoommateFeedbackRoommate", fields: [roommateId], references: [id], onDelete: Cascade)
+
+  rating          Int
+  review          String?  @db.Text
+  endReason       String
+  conflictType    String?
+  importantFactor String
+
+  createdAt       DateTime @default(now())
+
+  @@unique([relationshipId, reviewerId])
+  @@index([relationshipId])
+  @@index([reviewerId])
+  @@index([roommateId])
 }
 
 // ========================================
@@ -290,4 +342,25 @@ model CarpoolPassenger {
   @@unique([passengerId, carpoolId])
   @@index([passengerId])
   @@index([carpoolId])
+}
+
+enum Role {
+  dorm_seeker
+  dorm_provider
+  carpool
+}
+enum Gender {
+  Male
+  Female
+}
+enum RoommateRequestStatus {
+  Pending
+  Accepted
+  Rejected
+  Cancelled
+}
+
+enum RoommateRelationshipStatus {
+  Active
+  Ended
 }

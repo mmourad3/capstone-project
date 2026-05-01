@@ -338,7 +338,135 @@ export const favoriteDormAPI = {
 };
 
 
+export const roommateAPI = {
+  getIncomingRequests: async () => {
+    const res = await fetch(`${API_BASE}/roommates/requests/incoming`, {
+      headers: getAuthHeaders(),
+    });
+
+    const result = await res.json();
+    if (!res.ok)
+      throw new Error(result.message || "Failed to fetch roommate requests");
+    return result;
+  },
+
+  getSentRequests: async () => {
+    const res = await fetch(`${API_BASE}/roommates/requests/sent`, {
+      headers: getAuthHeaders(),
+    });
+
+    const result = await res.json();
+    if (!res.ok)
+      throw new Error(result.message || "Failed to fetch sent requests");
+    return result;
+  },
+
+  getActiveRoommates: async () => {
+    const res = await fetch(`${API_BASE}/roommates/active`, {
+      headers: getAuthHeaders(),
+    });
+
+    const result = await res.json();
+    if (!res.ok)
+      throw new Error(result.message || "Failed to fetch active roommates");
+    return result;
+  },
+
+  getStatus: async () => {
+    const res = await fetch(`${API_BASE}/roommates/status`, {
+      headers: getAuthHeaders(),
+    });
+
+    const result = await res.json();
+    if (!res.ok)
+      throw new Error(result.message || "Failed to fetch roommate status");
+    return result;
+  },
+
+  sendRequest: async ({ recipientId, dormId }) => {
+    const res = await fetch(`${API_BASE}/roommates/requests`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ recipientId, dormId }),
+    });
+
+    const result = await res.json();
+    if (!res.ok)
+      throw new Error(result.message || "Failed to send roommate request");
+    return result;
+  },
+
+  acceptRequest: async (requestId) => {
+    const res = await fetch(
+      `${API_BASE}/roommates/requests/${requestId}/accept`,
+      {
+        method: "PATCH",
+        headers: getAuthHeaders(),
+      },
+    );
+
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || "Failed to accept request");
+    return result;
+  },
+
+  rejectRequest: async (requestId) => {
+    const res = await fetch(
+      `${API_BASE}/roommates/requests/${requestId}/reject`,
+      {
+        method: "PATCH",
+        headers: getAuthHeaders(),
+      },
+    );
+
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || "Failed to reject request");
+    return result;
+  },
+
+  cancelRequest: async (requestId) => {
+    const res = await fetch(`${API_BASE}/roommates/requests/${requestId}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || "Failed to cancel request");
+    return result;
+  },
+
+  endRelationship: async (relationshipId) => {
+    const res = await fetch(
+      `${API_BASE}/roommates/relationships/${relationshipId}/end`,
+      {
+        method: "PATCH",
+        headers: getAuthHeaders(),
+      },
+    );
+
+    const result = await res.json();
+    if (!res.ok)
+      throw new Error(result.message || "Failed to end roommate relationship");
+    return result;
+  },
+
+  submitFeedback: async (relationshipId, data) => {
+    const res = await fetch(
+      `${API_BASE}/roommates/relationships/${relationshipId}/feedback`,
+      {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      },
+    );
+
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || "Failed to submit feedback");
+    return result;
+  },
+};
+
 
 export const carpoolAPI = {};
 export const messageAPI = {};
-export const roommateAPI = {};
+

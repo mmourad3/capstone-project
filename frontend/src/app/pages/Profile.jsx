@@ -21,8 +21,12 @@ import { ClassScheduleSection } from "../components/profile/ClassScheduleSection
 import { ProfileInfoForm } from "../components/profile/ProfileInfoForm";
 import { calculateDistanceToUniversity } from "../utils/universityCoordinates";
 import { authAPI, favoriteDormAPI } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
+import { getAvailableCountries } from "../config/appConfig";
 
 export default function Profile() {
+  const { user, loading } = useAuth();
+
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isEditing, setIsEditing] = useState(false);
@@ -36,15 +40,17 @@ export default function Profile() {
   
   // Redirect to home if not logged in
   useEffect(() => {
-    if (!localStorage.getItem('userId')) {
-      navigate('/');
+    if (loading) return;
+
+    if (!user) {
+      navigate("/");
     }
-  }, [navigate]);
+  }, [user, loading, navigate]);
 
   // Handler functions for detail modal
   const handleWhatsApp = (phone, posterName, listing) => {
-    const seekerName = localStorage.getItem('userName');
-    const seekerUniversity = localStorage.getItem('userUniversity');
+    const seekerName = `${userData.firstName} ${userData.lastName}`.trim();
+    const seekerUniversity = userData.university;
     contactDormProvider(listing, seekerName, seekerUniversity);
   };
 
@@ -61,21 +67,50 @@ export default function Profile() {
     navigate(url);
   };
   
-  // Get user data from localStorage
-  const [userData, setUserData] = useState({
-    firstName: localStorage.getItem('userFirstName') || '',
-    lastName: localStorage.getItem('userLastName') || '',
-    email: localStorage.getItem('userEmail') || '',
-    phone: localStorage.getItem('userPhone') || '',
-    gender: localStorage.getItem('userGender') || '',
-    role: localStorage.getItem('userRole') || '',
-    country: localStorage.getItem('userCountry') || '',
-    countryCode: localStorage.getItem('userCountryCode') || '',
-    university: localStorage.getItem('userUniversity') || '',
-    profilePicture: localStorage.getItem('userProfilePicture') || ''
-  });
+const emptyUserData = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  gender: "",
+  role: "",
+  country: "",
+  countryCode: "",
+  university: "",
+  profilePicture: "",
+};
 
-  const [editedData, setEditedData] = useState({ ...userData });
+const [userData, setUserData] = useState(emptyUserData);
+const [editedData, setEditedData] = useState(emptyUserData);
+
+useEffect(() => {
+  if (!user) return;
+
+  let phone = user.phone || "";
+
+  const selectedCountry = getAvailableCountries().find(
+    (c) => c.name === user.country,
+  );
+
+  const phoneCode = selectedCountry?.code || user.countryCode || "";
+
+  if (phoneCode && phone.startsWith(phoneCode)) {
+    phone = phone.slice(phoneCode.length);
+  }
+
+  const backendUser = {
+    ...emptyUserData,
+    ...user,
+    phone,
+    countryCode: phoneCode,
+    profilePicture: user.profilePicture || "",
+  };
+
+  setUserData(backendUser);
+  setEditedData(backendUser);
+}, [user]);
+
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -146,22 +181,6 @@ const handleSaveProfile = async () => {
     setUserData(newUserData);
     setEditedData(newUserData);
     setIsEditing(false);
-
-    localStorage.setItem("userFirstName", newUserData.firstName || "");
-    localStorage.setItem("userLastName", newUserData.lastName || "");
-    localStorage.setItem(
-      "userName",
-      `${newUserData.firstName || ""} ${newUserData.lastName || ""}`.trim(),
-    );
-    localStorage.setItem("userGender", newUserData.gender || "");
-    localStorage.setItem("userCountry", newUserData.country || "");
-    localStorage.setItem("userCountryCode", newUserData.countryCode || "");
-    localStorage.setItem("userPhone", newUserData.phone || "");
-    localStorage.setItem(
-      "userProfilePicture",
-      newUserData.profilePicture || "",
-    );
-
     toast.success("Profile updated successfully!");
   } catch (error) {
     toast.error(error.message || "Failed to update profile");
@@ -211,8 +230,7 @@ const handleSaveProfile = async () => {
   };
 
   const handleBack = () => {
-    const userType = localStorage.getItem('userRole');
-    navigateToDashboard(userType, navigate);
+    navigateToDashboard(userData.role, navigate);
   };
 
   const handleDeleteAccount = async () => {
@@ -223,57 +241,13 @@ const handleSaveProfile = async () => {
 
     try {
       await authAPI.deleteMe();
-
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("userRole");
-      localStorage.removeItem("userName");
-      localStorage.removeItem("userFirstName");
-      localStorage.removeItem("userLastName");
-      localStorage.removeItem("userEmail");
-      localStorage.removeItem("userProfilePicture");
-      localStorage.removeItem("userPhone");
-      localStorage.removeItem("userGender");
-      localStorage.removeItem("userUniversity");
-      localStorage.removeItem("userCountry");
-      localStorage.removeItem("userCountryCode");
-      localStorage.removeItem("carpoolRegion");
-      localStorage.removeItem("classSchedule");
-
+      authAPI.logout();
       toast.success("Your account has been permanently deleted.");
       navigate("/");
     } catch (error) {
       toast.error(error.message || "Failed to delete account");
     }
   };
-
-  // Migration: Split old userName into firstName and lastName if needed
-  useEffect(() => {
-    const firstName = localStorage.getItem('userFirstName');
-    const lastName = localStorage.getItem('userLastName');
-    const oldUserName = localStorage.getItem('userName');
-    
-    // If we have an old userName but no firstName/lastName, split it
-    if (oldUserName && !firstName && !lastName) {
-      const nameParts = oldUserName.trim().split(' ');
-      const newFirstName = nameParts[0] || '';
-      const newLastName = nameParts.slice(1).join(' ') || '';
-      
-      localStorage.setItem('userFirstName', newFirstName);
-      localStorage.setItem('userLastName', newLastName);
-      
-      setUserData(prev => ({
-        ...prev,
-        firstName: newFirstName,
-        lastName: newLastName
-      }));
-      setEditedData(prev => ({
-        ...prev,
-        firstName: newFirstName,
-        lastName: newLastName
-      }));
-    }
-  }, []);
 
   const normalizeFavoriteDorm = (listing) => {
     const poster = listing.poster || {};

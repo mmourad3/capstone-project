@@ -52,8 +52,10 @@ export const createDormListing = async (req, res) => {
       });
     }
 
-    const dorm = await DormListingModel.create(req.user.id, req.body);
-
+    const dorm = await DormListingModel.create(req.user.id, {
+      ...req.body,
+      lastActivatedAt: req.body.status === "Active" ? new Date() : null,
+    });
     return res.status(201).json({
       message: "Dorm listing created successfully",
       dorm,
@@ -95,6 +97,7 @@ export const updateDormListing = async (req, res) => {
             "Please submit feedback for your ended roommate relationship before activating a dorm listing",
         });
       }
+      req.body.lastActivatedAt = new Date();
     }
 
     const dorm = await DormListingModel.update(req.params.id, req.body);

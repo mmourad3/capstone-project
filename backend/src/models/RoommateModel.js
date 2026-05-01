@@ -253,6 +253,10 @@ export const RoommateModel = {
         data: { status: "Found Roommate" },
       });
 
+      await tx.favoriteDorm.deleteMany({
+        where: { dormId: request.dormId },
+      });
+
       await tx.roommateRequest.deleteMany({
         where: {
           status: "Pending",
@@ -353,6 +357,9 @@ export const RoommateModel = {
         where: { id: relationship.dormId },
         data: { status: "Inactive" },
       });
+      await tx.favoriteDorm.deleteMany({
+        where: { dormId: relationship.dormId },
+      });
 
       return formatRelationshipForUser(updatedRelationship, currentUserId);
     });
@@ -388,7 +395,6 @@ export const RoommateModel = {
       },
       update: {
         rating: data.rating,
-        review: data.review || null,
         endReason: data.endReason,
         conflictType: data.conflictType || null,
         importantFactor: data.importantFactor,
@@ -398,7 +404,6 @@ export const RoommateModel = {
         reviewerId,
         roommateId,
         rating: data.rating,
-        review: data.review || null,
         endReason: data.endReason,
         conflictType: data.conflictType || null,
         importantFactor: data.importantFactor,

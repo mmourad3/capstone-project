@@ -1,3 +1,5 @@
+import { saveAiMatchLog } from "./logs.js";
+
 const parseArray = (value) => {
   if (Array.isArray(value)) return value;
   if (!value || typeof value !== "string") return [];
@@ -46,6 +48,13 @@ const LEVELS = {
   },
 };
 
+const RULE_SCORE_WEIGHT = 0.7;
+const TRANSFORMER_SCORE_WEIGHT = 0.3;
+const TRANSFORMER_MODEL =
+  process.env.ROOMMATE_EMBEDDING_MODEL || "Xenova/all-MiniLM-L6-v2";
+
+let embeddingExtractorPromise = null;
+
 const scoreLevelField = (field, a, b, maxPoints) => {
   const aLevel = LEVELS[field]?.[a];
   const bLevel = LEVELS[field]?.[b];
@@ -93,7 +102,87 @@ const violatesDealBreakers = (dealBreakers, candidate) => {
   });
 };
 
-export const calculateRoommateCompatibilityScore = (questionnaire, candidate) => {
+const listText = (label, value) => {
+  const values = parseArray(value).filter(Boolean);
+  return values.length ? `${label}: ${values.join(", ")}.` : "";
+};
+
+const fieldText = (label, value) => (value ? `${label}: ${value}.` : "");
+
+const buildRoommateProfileText = (questionnaire) =>
+  [
+    fieldText("Sleep schedule", questionnaire.sleepSchedule),
+    fieldText("Wake up time", questionnaire.wakeUpTime),
+    fieldText("Sleep time", questionnaire.sleepTime),
+    fieldText("Cleanliness", questionnaire.cleanliness),
+    fieldText("Organization style", questionnaire.organizationLevel),
+    fieldText("Social preference", questionnaire.socialLevel),
+    fieldText("Guest frequency", questionnaire.guestFrequency),
+    fieldText("Shared spaces preference", questionnaire.sharedSpaces),
+    fieldText("Smoking preference", questionnaire.smoking),
+    fieldText("Drinking preference", questionnaire.drinking),
+    fieldText("Pet preference", questionnaire.pets),
+    fieldText("Dietary preference", questionnaire.dietaryPreferences),
+    fieldText("Study time", questionnaire.studyTime),
+    fieldText("Noise preference", questionnaire.noiseLevel),
+    fieldText("Music while studying", questionnaire.musicWhileStudying),
+    fieldText("Temperature preference", questionnaire.temperaturePreference),
+    fieldText("Sharing items preference", questionnaire.sharingItems),
+    fieldText("Allergies", questionnaire.allergies),
+    listText("Interests", questionnaire.interests),
+    listText("Personal qualities", questionnaire.personalQualities),
+    listText("Important roommate qualities", questionnaire.importantQualities),
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+const getEmbeddingExtractor = async () => {
+  if (!embeddingExtractorPromise) {
+    embeddingExtractorPromise = import("@huggingface/transformers").then(
+      ({ pipeline }) => pipeline("feature-extraction", TRANSFORMER_MODEL),
+    );
+  }
+
+  return embeddingExtractorPromise;
+};
+
+const cosineSimilarity = (a, b) => {
+  let dot = 0;
+  let aMagnitude = 0;
+  let bMagnitude = 0;
+
+  for (let i = 0; i < a.length; i += 1) {
+    dot += a[i] * b[i];
+    aMagnitude += a[i] * a[i];
+    bMagnitude += b[i] * b[i];
+  }
+
+  if (!aMagnitude || !bMagnitude) return 0;
+
+  return dot / (Math.sqrt(aMagnitude) * Math.sqrt(bMagnitude));
+};
+
+const calculateTransformerSimilarityScore = async (questionnaire, candidate) => {
+  const profile = buildRoommateProfileText(questionnaire);
+  const candidateProfile = buildRoommateProfileText(candidate);
+
+  if (!profile || !candidateProfile) return 0;
+
+  const extractor = await getEmbeddingExtractor();
+  const output = await extractor([profile, candidateProfile], {
+    pooling: "mean",
+    normalize: true,
+  });
+  const [embedding, candidateEmbedding] = output.tolist();
+  const similarity = cosineSimilarity(embedding, candidateEmbedding);
+
+  return Math.round(Math.max(0, Math.min(1, similarity)) * 100);
+};
+
+export const calculateRuleBasedRoommateCompatibilityScore = (
+  questionnaire,
+  candidate,
+) => {
   if (!questionnaire || !candidate) return 0;
   if (violatesDealBreakers(questionnaire.dealBreakers, candidate)) return 0;
   if (violatesDealBreakers(candidate.dealBreakers, questionnaire)) return 0;
@@ -130,3 +219,44 @@ export const calculateRoommateCompatibilityScore = (questionnaire, candidate) =>
   return Math.min(100, Math.max(0, score));
 };
 
+export const calculateRoommateCompatibilityScore = async (
+  questionnaire,
+  candidate,
+) => {
+  const ruleScore = calculateRuleBasedRoommateCompatibilityScore(
+    questionnaire,
+    candidate,
+  );
+
+  if (!questionnaire || !candidate || ruleScore === 0) return ruleScore;
+
+  try {
+    const transformerScore = await calculateTransformerSimilarityScore(
+      questionnaire,
+      candidate,
+    );
+    const ruleContribution = Number(
+      (ruleScore * RULE_SCORE_WEIGHT).toFixed(2),
+    );
+    const aiContribution = Number(
+      (transformerScore * TRANSFORMER_SCORE_WEIGHT).toFixed(2),
+    );
+    const finalScore = Math.round(ruleContribution + aiContribution);
+
+    await saveAiMatchLog({
+      seekerId: questionnaire.userId,
+      candidateId: candidate.userId,
+      ruleScore,
+      transformerScore,
+      ruleContribution,
+      aiContribution,
+      finalScore,
+      model: TRANSFORMER_MODEL,
+    });
+
+    return finalScore;
+  } catch (error) {
+    console.error("Transformer roommate matching failed:", error);
+    return ruleScore;
+  }
+};

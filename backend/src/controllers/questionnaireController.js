@@ -38,12 +38,16 @@ const syncRoommateMatches = async (userId, questionnaire) => {
     },
   });
 
-  const matches = candidates
-    .map((candidate) => ({
+  const scoredMatches = await Promise.all(
+    candidates.map(async (candidate) => ({
       userId: candidate.userId,
-      score: calculateRoommateCompatibilityScore(questionnaire, candidate),
-    }))
-    .filter((match) => match.score >= MATCH_THRESHOLD);
+      score: await calculateRoommateCompatibilityScore(questionnaire, candidate),
+    })),
+  );
+
+  const matches = scoredMatches.filter(
+    (match) => match.score >= MATCH_THRESHOLD,
+  );
 
   await Promise.all(
     matches.map((match) =>

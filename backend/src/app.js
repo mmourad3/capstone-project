@@ -7,6 +7,7 @@ import dormListingRoutes from "./routes/dormListingRoutes.js";
 import favoriteDormRoutes from "./routes/favoriteDormRoutes.js";
 import geminiChatRoutes from "./routes/geminiChatRoutes.js";
 import roommateRoutes from "./routes/roommateRoutes.js";
+import carpoolRoutes from "./routes/carpoolRoutes.js";
 
 dotenv.config();
 
@@ -22,4 +23,5 @@ app.use("/api/questionnaire", questionnaireRoutes);
 app.use("/api/favorite-dorms", favoriteDormRoutes);
 app.use("/api/gemini-chat", geminiChatRoutes);
 app.use("/api/roommates", roommateRoutes);
+app.use("/api/carpools", carpoolRoutes);
 export default app;

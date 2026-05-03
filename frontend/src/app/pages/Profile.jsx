@@ -20,7 +20,7 @@ import { JoinedCarpoolsSection } from "../components/profile/JoinedCarpoolsSecti
 import { ClassScheduleSection } from "../components/profile/ClassScheduleSection";
 import { ProfileInfoForm } from "../components/profile/ProfileInfoForm";
 import { calculateDistanceToUniversity } from "../utils/universityCoordinates";
-import { authAPI, favoriteDormAPI } from "../services/api";
+import { authAPI, favoriteDormAPI, carpoolAPI } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import { getAvailableCountries } from "../config/appConfig";
 
@@ -77,6 +77,7 @@ const emptyUserData = {
   country: "",
   countryCode: "",
   university: "",
+  region: "",
   profilePicture: "",
 };
 
@@ -111,20 +112,26 @@ useEffect(() => {
 }, [user]);
 
 
+
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
 
-  // Class schedule state for carpool users
-  const [classSchedule, setClassSchedule] = useState(
-    JSON.parse(localStorage.getItem('classSchedule') || '[]')
-  );
-  const [carpoolRegion] = useState(localStorage.getItem('carpoolRegion') || '');
+  const [classSchedule, setClassSchedule] = useState([]);
+  const carpoolRegion = userData.region || "";
 
   const [isEditingSchedule, setIsEditingSchedule] = useState(false);
   const [editedSchedule, setEditedSchedule] = useState([...classSchedule]);
+
+  useEffect(() => {
+if (user?.role !== "carpool") return;
+    const schedule = user?.classSchedule || [];
+    setClassSchedule(schedule);
+    setEditedSchedule(schedule);
+  }, [user, userData.role]);
 
   // Schedule management helpers
   const scheduleHelpers = createScheduleHelpers(editedSchedule, setEditedSchedule);
@@ -318,57 +325,27 @@ useEffect(() => {
 
 
 
-  // Load joined carpools
   useEffect(() => {
-    const loadJoinedCarpools = () => {
-      const joinedRideIds = JSON.parse(localStorage.getItem('joinedCarpools') || '[]');
-      const allCarpools = JSON.parse(localStorage.getItem('carpoolListings') || '[]');
-      
-      // Filter carpools to get only the ones the user has joined
-      const joinedCarpoolsList = allCarpools.filter(carpool => 
-        joinedRideIds.includes(carpool.id)
-      );
-      
-      setJoinedCarpools(joinedCarpoolsList);
-    };
-    
-    loadJoinedCarpools();
-    
-    // Listen for changes to joined carpools
-    const handleStorageChange = (e) => {
-      if (e.key === 'joinedCarpools' || e.key === 'carpoolListings') {
-        loadJoinedCarpools();
+    if (userData.role !== "carpool") return;
+
+    const loadJoinedCarpools = async () => {
+      try {
+        const carpools = await carpoolAPI.getJoined();
+        setJoinedCarpools(carpools);
+      } catch (error) {
+        toast.error(error.message || "Failed to load joined carpools");
       }
     };
-    
-    // Listen for custom event from other components
-    const handleJoinedCarpoolsUpdate = () => {
-      loadJoinedCarpools();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('joinedCarpoolsUpdated', handleJoinedCarpoolsUpdate);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('joinedCarpoolsUpdated', handleJoinedCarpoolsUpdate);
-    };
-  }, []);
 
-  // Listen for class schedule updates from the component
-  useEffect(() => {
-    const handleScheduleUpdate = () => {
-      const updated = JSON.parse(localStorage.getItem('classSchedule') || '[]');
-      setClassSchedule(updated);
-      setEditedSchedule(updated);
-    };
-    
-    window.addEventListener('classScheduleUpdated', handleScheduleUpdate);
-    
+    loadJoinedCarpools();
+
+    window.addEventListener("joinedCarpoolsUpdated", loadJoinedCarpools);
+
     return () => {
-      window.removeEventListener('classScheduleUpdated', handleScheduleUpdate);
+      window.removeEventListener("joinedCarpoolsUpdated", loadJoinedCarpools);
     };
-  }, []);
+  }, [userData.role]);
+
 
   // Handle URL parameter for opening specific dorm
   useEffect(() => {

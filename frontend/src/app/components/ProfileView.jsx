@@ -247,16 +247,7 @@ export default function ProfileView({
               </p>
             </div>
 
-            {/* AI-Generated Explanation Paragraph */}
-            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-4">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-2 flex items-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                AI Compatibility Summary
-              </h3>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                {compatibility.explanation || "AI compatibility summary is not available yet. This feature will be enabled once the AI model is integrated."}
-              </p>
-            </div>
+            
 
             <div className="grid md:grid-cols-2 gap-4">
               {/* What You Have in Common - Always visible */}

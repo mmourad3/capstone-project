@@ -338,10 +338,10 @@ const handleRejectRequest = async (requestId) => {
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-3">
                       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                        {request.senderPicture ? (
+                        {roommateData.picture ? (
                           <img
-                            src={request.senderPicture}
-                            alt={request.senderName}
+                            src={roommateData.picture}
+                            alt={roommateData.name}
                             className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white dark:border-gray-700 flex-shrink-0"
                           />
                         ) : (

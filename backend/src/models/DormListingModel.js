@@ -41,6 +41,7 @@ const posterSelect = {
   gender: true,
   university: true,
   profilePicture: true,
+  questionnaire: true,
 };
 
 export const DormListingModel = {
@@ -48,7 +49,10 @@ export const DormListingModel = {
     const dorms = await prisma.dormListing.findMany({
       include: {
         poster: {
-          select: posterSelect,
+          select: {
+            ...posterSelect,
+            questionnaire: true,
+          }
         },
       },
       orderBy: {

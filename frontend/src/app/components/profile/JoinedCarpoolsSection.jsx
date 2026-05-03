@@ -1,5 +1,6 @@
 import { MapPin, Calendar, Clock, DollarSign, Users, MessageCircle, X, Home } from "lucide-react";
-import { getDayAbbreviation, getReturnTime, formatPassengerCount, formatCarpoolLocation, leaveCarpoolInStorage } from "../../utils/carpoolHelpers";
+import { getDayAbbreviation, getReturnTime, formatPassengerCount, formatCarpoolLocation } from "../../utils/carpoolHelpers";
+import { carpoolAPI } from "../../services/api";
 import { ProfilePicture } from "../ProfilePicture";
 import { openWhatsAppChat } from "../../utils/whatsappUtils";
 import { toast } from "react-toastify";
@@ -15,7 +16,9 @@ export function JoinedCarpoolsSection({ joinedCarpools }) {
       {joinedCarpools.length === 0 ? (
         <div className="text-center py-12">
           <Users className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-300 mb-2">No joined carpools yet</p>
+          <p className="text-gray-600 dark:text-gray-300 mb-2">
+            No joined carpools yet
+          </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Join a carpool from the dashboard to see it here
           </p>
@@ -39,32 +42,54 @@ export function JoinedCarpoolsSection({ joinedCarpools }) {
 
               {/* Carpool Details */}
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-center sm:text-left">{carpool.driverName}</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-center sm:text-left">
+                  {carpool.driverName}
+                </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-sm">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate">{formatCarpoolLocation(carpool)}</span>
+                    <span className="truncate">
+                      {formatCarpoolLocation(carpool)}
+                    </span>
                   </div>
                   {/* Schedule Days */}
-                  {carpool.driverSchedule && carpool.driverSchedule.length > 0 && (
-                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-sm">
-                      <Calendar className="w-4 h-4 flex-shrink-0 text-purple-600 dark:text-purple-400" />
-                      <span className="font-medium">
-                        {carpool.driverSchedule
-                          .flatMap(block => block.days || [])
-                          .filter((day, index, self) => self.indexOf(day) === index)
-                          .sort((a, b) => {
-                            const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-                            return dayOrder.indexOf(a) - dayOrder.indexOf(b);
-                          })
-                          .map(day => getDayAbbreviation(day))
-                          .join(', ')}
-                      </span>
-                    </div>
-                  )}
+                  {carpool.driverSchedule &&
+                    carpool.driverSchedule.length > 0 && (
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-sm">
+                        <Calendar className="w-4 h-4 flex-shrink-0 text-purple-600 dark:text-purple-400" />
+                        <span className="font-medium">
+                          {carpool.driverSchedule
+                            .flatMap((block) => block.days || [])
+                            .filter(
+                              (day, index, self) => self.indexOf(day) === index,
+                            )
+                            .sort((a, b) => {
+                              const dayOrder = [
+                                "monday",
+                                "tuesday",
+                                "wednesday",
+                                "thursday",
+                                "friday",
+                                "saturday",
+                                "sunday",
+                              ];
+                              return dayOrder.indexOf(a) - dayOrder.indexOf(b);
+                            })
+                            .map((day) => getDayAbbreviation(day))
+                            .join(", ")}
+                        </span>
+                      </div>
+                    )}
                   <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-sm">
                     <Calendar className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate">{new Date(carpool.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <span className="truncate">
+                      {new Date(carpool.date).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-sm">
                     <Clock className="w-4 h-4 flex-shrink-0" />
@@ -106,18 +131,23 @@ export function JoinedCarpoolsSection({ joinedCarpools }) {
                   Contact
                 </button>
                 <button
-                  onClick={() => {
-                    if (window.confirm(`Are you sure you want to leave ${carpool.driverName}'s carpool?`)) {
-                      const userEmail = localStorage.getItem('userEmail');
-                      const result = leaveCarpoolInStorage(carpool.id, userEmail, 'joinedCarpools');
-                      
-                      if (result.success) {
-                        toast.success(`You've left ${carpool.driverName}'s carpool`);
-                        // Trigger event to refresh the profile page
-                        window.dispatchEvent(new Event('joinedCarpoolsUpdated'));
-                      } else {
-                        toast.error('Failed to leave carpool. Please try again.');
-                      }
+                  onClick={async () => {
+                    if (
+                      !window.confirm(
+                        `Are you sure you want to leave ${carpool.driverName}'s carpool?`,
+                      )
+                    ) {
+                      return;
+                    }
+
+                    try {
+                      await carpoolAPI.leave(carpool.id);
+                      toast.success(
+                        `You've left ${carpool.driverName}'s carpool`,
+                      );
+                      window.dispatchEvent(new Event("joinedCarpoolsUpdated"));
+                    } catch (error) {
+                      toast.error(error.message || "Failed to leave carpool");
                     }
                   }}
                   className="flex-1 sm:flex-none px-4 py-2 text-sm bg-red-500 dark:bg-red-600 text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-700 transition-colors cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap"

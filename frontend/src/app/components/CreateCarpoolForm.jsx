@@ -10,7 +10,8 @@ export function CreateCarpoolForm({
   userRegion,
   userUniversity,
   userClassSchedule,
-  regionLocations
+  regionLocations,
+  myCarpools = [],
 }) {
   // State to hold validation errors - separate for depart and return times
   const [departError, setDepartError] = useState('');
@@ -34,16 +35,14 @@ export function CreateCarpoolForm({
     onClose();
   };
 
-  // Check if a schedule block already has an active listing
-  const isScheduleBlockInUse = (block, blockIndex) => {
-    const userEmail = localStorage.getItem('userEmail') || '';
-    const storedCarpools = JSON.parse(localStorage.getItem('carpoolListings') || '[]');
-    
-    return storedCarpools.some(carpool => {
-      if (carpool.driverEmail !== userEmail) return false;
-      if (!carpool.driverSchedule || carpool.driverSchedule.length === 0) return false;
-      
+  const isScheduleBlockInUse = (block) => {
+    return myCarpools.some((carpool) => {
+      if (!carpool.driverSchedule || carpool.driverSchedule.length === 0) {
+        return false;
+      }
+
       const existingBlock = carpool.driverSchedule[0];
+
       return (
         existingBlock.courseName === block.courseName &&
         existingBlock.startTime === block.startTime &&
@@ -52,6 +51,7 @@ export function CreateCarpoolForm({
       );
     });
   };
+  
 
   // Auto-set return time when schedule block changes
   const handleScheduleBlockChange = (index) => {
@@ -140,7 +140,7 @@ export function CreateCarpoolForm({
                 {userClassSchedule.map((block, index) => {
                   const days = block.days || [];
                   const daysDisplay = days.map(d => getDayAbbreviation(d)).join(', ');
-                  const blockInUse = isScheduleBlockInUse(block, index);
+                  const blockInUse = isScheduleBlockInUse(block);
                   const isDisabled = blockInUse && formData.selectedScheduleBlock !== index;
                   
                   return (
@@ -187,7 +187,7 @@ export function CreateCarpoolForm({
               </div>
             ) : (
               <p className="text-sm text-red-600 dark:text-red-400">
-                ⚠️ You don't have any class schedule set. Please update your profile.
+                You don't have any class schedule set. Please update your profile.
               </p>
             )}
           </div>

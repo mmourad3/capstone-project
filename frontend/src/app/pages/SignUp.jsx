@@ -390,7 +390,7 @@ export default function SignUp() {
         university,
         region: role === "carpool" ? carpoolRegion : null,
         classSchedule: role === "carpool" ? classSchedule : [],
-        profilePicture: null,
+        profilePicture: profilePicturePreview||null,
       };
 
       const response = await register(signupData);

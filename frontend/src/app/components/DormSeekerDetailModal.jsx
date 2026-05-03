@@ -239,13 +239,13 @@ if (!selectedListing) return null;
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                   <h5 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white truncate">
-                    {selectedListing.poster}
+                    {selectedListing.posterName}
                   </h5>
                   <button
                     onClick={() =>
                       handleWhatsApp(
                         selectedListing.whatsapp,
-                        selectedListing.poster,
+                        selectedListing.posterName,
                         selectedListing,
                       )
                     }
@@ -283,7 +283,7 @@ if (!selectedListing) return null;
                 <RequestRoommateButton
                   user={{
                     id: selectedListing.posterId,
-                    name: selectedListing.poster,
+                    name: selectedListing.posterName,
                     email: selectedListing.posterEmail,
                     picture: selectedListing.posterProfilePic,
                   }}

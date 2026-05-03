@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Check, X, UserMinus, MessageCircle, ExternalLink } from 'lucide-react';
+import { Users, Check, X, UserMinus, MessageCircle, ExternalLink, User } from 'lucide-react';
 import { roommateAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import RoommateFeedbackModal from './RoommateFeedbackModal';
@@ -182,14 +182,17 @@ const handleRejectRequest = async (requestId) => {
                     className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
                   >
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                      <img
-                        src={
-                          request.senderPicture ||
-                          "https://via.placeholder.com/40"
-                        }
-                        alt={request.senderName}
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white dark:border-gray-700 flex-shrink-0"
-                      />
+                      {request.senderPicture ? (
+                        <img
+                          src={request.senderPicture}
+                          alt={request.senderName}
+                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white dark:border-gray-700 flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center border-2 border-white dark:border-gray-700 flex-shrink-0">
+                          <User className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      )}
                       <div className="min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                           <p className="font-medium text-sm sm:text-base text-gray-900 dark:text-white break-words">
@@ -244,14 +247,17 @@ const handleRejectRequest = async (requestId) => {
                   className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                    <img
-                      src={
-                        request.recipientPicture ||
-                        "https://via.placeholder.com/40"
-                      }
-                      alt={request.recipientName}
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white dark:border-gray-600 flex-shrink-0"
-                    />
+                    {request.senderPicture ? (
+                      <img
+                        src={request.senderPicture}
+                        alt={request.senderName}
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white dark:border-gray-700 flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center border-2 border-white dark:border-gray-700 flex-shrink-0">
+                        <User className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    )}
                     <div className="min-w-0">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                         <p className="font-medium text-sm sm:text-base text-gray-900 dark:text-white break-words">
@@ -332,14 +338,17 @@ const handleRejectRequest = async (requestId) => {
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-3">
                       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                        <img
-                          src={
-                            roommateData.picture ||
-                            "https://via.placeholder.com/40"
-                          }
-                          alt={roommateData.name}
-                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white dark:border-gray-600 flex-shrink-0"
-                        />
+                        {request.senderPicture ? (
+                          <img
+                            src={request.senderPicture}
+                            alt={request.senderName}
+                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white dark:border-gray-700 flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center border-2 border-white dark:border-gray-700 flex-shrink-0">
+                            <User className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
+                          </div>
+                        )}
                         <div className="min-w-0">
                           <div className="flex items-center gap-1 sm:gap-2">
                             <p className="font-medium text-sm sm:text-base break-words text-gray-900 dark:text-white">

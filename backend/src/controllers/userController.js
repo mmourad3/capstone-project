@@ -227,7 +227,7 @@ export const getUser = async (req, res) => {
  */
 export const getMe = async (req, res) => {
   try {
-    const user = await UserModel.findById(req.user.id);
+    const user = await UserModel.findProfileById(req.user.id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

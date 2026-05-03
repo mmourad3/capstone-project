@@ -1,51 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useAuth } from "../contexts/AuthContext";
 
-/**
- * User Data Hook
- * Centralized hook for accessing user data from localStorage
- * Automatically updates when localStorage changes
- * 
- * @returns {object} User data object with all user fields
- */
 export function useUserData() {
-  const [userData, setUserData] = useState(() => getUserDataFromStorage());
+  const { user } = useAuth();
 
-  useEffect(() => {
-    // Update user data when storage changes
-    const handleStorageChange = () => {
-      setUserData(getUserDataFromStorage());
-    };
+  const fullName =
+    user?.name || `${user?.firstName || ""} ${user?.lastName || ""}`.trim();
 
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Custom event for same-window updates
-    window.addEventListener('userDataUpdated', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('userDataUpdated', handleStorageChange);
-    };
-  }, []);
-
-  return userData;
-}
-
-/**
- * Get all user data from localStorage
- */
-function getUserDataFromStorage() {
   return {
-    userId: localStorage.getItem('userId') || '',
-    userName: localStorage.getItem('userName') || '',
-    userEmail: localStorage.getItem('userEmail') || '',
-    userRole: localStorage.getItem('userRole') || '',
-    userPhone: localStorage.getItem('userPhone') || '',
-    userCountryCode: localStorage.getItem('userCountryCode') || '',
-    userCountry: localStorage.getItem('userCountry') || '',
-    userGender: localStorage.getItem('userGender') || '',
-    userProfilePicture: localStorage.getItem('userProfilePicture') || '',
-    userUniversity: localStorage.getItem('userUniversity') || '',
-    carpoolRegion: localStorage.getItem('carpoolRegion') || '',
-    dormRegion: localStorage.getItem('dormRegion') || '',
-    classSchedule: JSON.parse(localStorage.getItem('classSchedule') || '[]'),
-}}
+    userId: user?.id || "",
+    userName: fullName,
+    userEmail: user?.email || "",
+    userRole: user?.role || "",
+    userPhone: user?.phone || "",
+    userCountryCode: user?.countryCode || "",
+    userCountry: user?.country || "",
+    userGender: user?.gender || "",
+    userProfilePicture: user?.profilePicture || "",
+    userUniversity: user?.university || "",
+    carpoolRegion: user?.region || "",
+    dormRegion: user?.region || "",
+    classSchedule: user?.classSchedule || [],
+    lifestyleAnswers: user?.questionnaire || null,
+  };
+}

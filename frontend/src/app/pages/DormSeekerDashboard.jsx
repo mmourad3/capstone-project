@@ -17,7 +17,6 @@ import { DormSeekerDetailModal } from "../components/DormSeekerDetailModal";
 import { useRoleProtection } from "../hooks/useRoleProtection";
 import { useUserData } from "../hooks/useUserData";
 import { calculateDistanceToUniversity } from "../utils/universityCoordinates";
-import { DEMO_QUESTIONNAIRES } from "../data/demoData";
 import { calculateCompatibility } from "../utils/comprehensiveCompatibilityCalculator";
 import { contactDormProvider } from "../utils/whatsappUtils";
 import { favoriteDormAPI } from "../services/api";
@@ -75,14 +74,12 @@ const normalizeDormListing = (listing) => {
 
   return {
     ...listing,
-
-    // Keep frontend display logic working
     price: Number(listing.price) || 0,
 
     // Backend poster object converted to old frontend field names
     posterId: listing.posterId,
     posterName,
-    poster: posterName,
+    posterDisplayName: posterName,
     posterEmail: poster.email || "",
     posterPhone: poster.phone || "",
     whatsapp: poster.phone || "",
@@ -107,7 +104,7 @@ const processListings = (listings) => {
       currentUserQuestionnaire &&
       Object.keys(currentUserQuestionnaire).length > 0
     ) {
-      const posterQuestionnaire = DEMO_QUESTIONNAIRES[processed.posterId];
+      const posterQuestionnaire = processed.poster?.questionnaire || null;
 
       if (posterQuestionnaire) {
         const compatibility = calculateCompatibility(
@@ -251,7 +248,7 @@ useEffect(() => {
   const sortedListings = [...filteredListings].sort((a, b) => {
     switch (sortBy) {
       case "compatibility":
-        return b.compatibilityScore - a.compatibilityScore;
+        return (b.compatibilityScore || 0) - (a.compatibilityScore || 0);
       case "price-low":
         // Price is now stored as a number
         return (a.price || 0) - (b.price || 0);
@@ -273,7 +270,7 @@ useEffect(() => {
         const dateOldB = new Date(b.datePosted || 0).getTime();
         return dateOldA - dateOldB;
       default:
-        return b.compatibilityScore - a.compatibilityScore;
+        return (b.compatibilityScore || 0) - (a.compatibilityScore || 0);
     }
   });
 

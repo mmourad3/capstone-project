@@ -1,15 +1,14 @@
 import { useNavigate } from "react-router";
 import { getDashboardPath } from "../utils/navigationHelpers";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function RedirectToDashboard({ children, className = "" }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleClick = () => {
-    const isLoggedIn = localStorage.getItem("userId");
-    const role = localStorage.getItem("userRole");
-
-    if (isLoggedIn && role) {
-      navigate(getDashboardPath(role));
+    if (user?.role) {
+      navigate(getDashboardPath(user.role));
     } else {
       navigate("/");
     }

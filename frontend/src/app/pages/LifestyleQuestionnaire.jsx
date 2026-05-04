@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router';
+import { useNavigate, Link, useLocation } from 'react-router';
 import { toast } from 'react-toastify';
 import { navigateToDashboard } from '../utils/navigationHelpers';
 import { questionnaireAPI } from "../services/api";
 import { ArrowLeft, CheckCircle, Moon, Sun, Home, Users, Coffee, BookOpen, Heart, Thermometer, Info, VolumeX, Volume1, Volume2, Gamepad2, Utensils, Plane, Music, Dumbbell, Palette, Camera, Film, Code, Flame, Snowflake } from 'lucide-react';
+import {useAuth} from "../contexts/AuthContext";
+
 
 const emptyQuestionnaire = {
   sleepSchedule: "",
@@ -32,12 +34,12 @@ const emptyQuestionnaire = {
 
 export default function LifestyleQuestionnaire() {
   const navigate = useNavigate();
-  const role = localStorage.getItem('userRole') || "dorm_seeker";
+  const { user } = useAuth();
+  const role = user?.role || "dorm_seeker";
   
   // Redirect carpool users - questionnaire is ONLY for dorm seekers and providers
   useEffect(() => {
-    const userRole = localStorage.getItem('userRole');
-    if (userRole === 'carpool') {
+    if (user?.role === 'carpool') {
       console.log('[LifestyleQuestionnaire] Carpool users do not need questionnaire, redirecting to dashboard');
       navigateToDashboard(userRole, navigate);
     }

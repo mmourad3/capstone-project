@@ -10,9 +10,9 @@ export function LifestylePreferencesSection({ navigate }) {
   }
 
   const handleEditQuestionnaire = () => {
-    // Store a flag to return to profile after saving
-    localStorage.setItem('returnToProfile', 'true');
-    navigate('/lifestyle-questionnaire');
+    navigate("/lifestyle-questionnaire", {
+      state: { returnToProfile: true },
+    });
   };
 
   return (

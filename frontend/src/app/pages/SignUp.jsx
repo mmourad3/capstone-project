@@ -17,10 +17,10 @@ import { AVAILABLE_COUNTRIES as countries, getGroupedRegions } from '../config/a
 import { validatePassword, getPasswordErrorMessage } from '../utils/passwordValidation';
 import { createExistenceChecker } from '../utils/validationHelpers';
 import { createScheduleHelpers } from '../utils/scheduleHelpers';
-import { handleProfilePictureUpload } from '../utils/profileHelpers';
 import { authAPI } from "../services/api";
 import { navigateToDashboard } from "../utils/navigationHelpers";
 import { useAuth } from "../contexts/AuthContext";
+import { uploadProfilePicture } from '../utils/uploadProfilePicture';
 
 const groupedUniversities = getGroupedUniversities();
 const isPhoneValid = (phoneValue, countryValue) => {
@@ -297,12 +297,13 @@ export default function SignUp() {
 
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setProfilePicture(file);
-      handleProfilePictureUpload(file, (result) => {
-        setProfilePicturePreview(result);
-      });
-    }
+    if (!file) return;
+
+    setProfilePicture(file);
+
+    // preview (THIS is what shows the image)
+    const previewUrl = URL.createObjectURL(file);
+    setProfilePicturePreview(previewUrl);
   };
 
   const removeProfilePicture = () => {
@@ -377,6 +378,17 @@ export default function SignUp() {
     setIsLoading(true);
 
     try {
+      let profilePictureUrl = null;
+
+      if (profilePicture) {
+        const { uploadProfilePicture } =
+          await import("../utils/uploadProfilePicture");
+
+        profilePictureUrl = await uploadProfilePicture(
+          profilePicture,
+          email, // or temporary ID
+        );
+      }
       const signupData = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -390,7 +402,7 @@ export default function SignUp() {
         university,
         region: role === "carpool" ? carpoolRegion : null,
         classSchedule: role === "carpool" ? classSchedule : [],
-        profilePicture: profilePicturePreview||null,
+        profilePicture: profilePictureUrl,
       };
 
       const response = await register(signupData);

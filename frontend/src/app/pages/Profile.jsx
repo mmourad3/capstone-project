@@ -10,7 +10,6 @@ import { DormSeekerDetailModal } from "../components/DormSeekerDetailModal";
 import { contactDormProvider } from "../utils/whatsappUtils";
 import { validatePasswordChange } from "../utils/passwordValidation";
 import { createScheduleHelpers } from "../utils/scheduleHelpers";
-import { handleProfilePictureUpload, removeProfilePictureHelper } from "../utils/profileHelpers";
 import { navigateToDashboard, getRoleDisplayName } from "../utils/navigationHelpers";
 import { validatePhoneByCountry } from "../utils/phoneValidation";
 import { ChangePasswordSection } from "../components/profile/ChangePasswordSection";
@@ -23,6 +22,7 @@ import { calculateDistanceToUniversity } from "../utils/universityCoordinates";
 import { authAPI, favoriteDormAPI, carpoolAPI } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import { getAvailableCountries } from "../config/appConfig";
+import { uploadProfilePicture, deleteProfilePictureFromUrl } from '../utils/uploadProfilePicture';
 
 export default function Profile() {
   const { user, loading } = useAuth();
@@ -37,6 +37,7 @@ export default function Profile() {
   const [favoritedListings, setFavoritedListings] = useState([]);
   const [selectedListing, setSelectedListing] = useState(null);
   const [joinedCarpools, setJoinedCarpools] = useState([]);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   
   // Redirect to home if not logged in
   useEffect(() => {
@@ -136,18 +137,32 @@ if (user?.role !== "carpool") return;
   // Schedule management helpers
   const scheduleHelpers = createScheduleHelpers(editedSchedule, setEditedSchedule);
 
+  const [profilePictureFile, setProfilePictureFile] = useState(null);
+
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
-    handleProfilePictureUpload(file, (result) => {
-      setEditedData({ ...editedData, profilePicture: result });
+    if (!file) return;
+
+    setProfilePictureFile(file);
+
+    const previewUrl = URL.createObjectURL(file);
+
+    setEditedData({
+      ...editedData,
+      profilePicture: previewUrl,
     });
   };
 
   const removeProfilePicture = () => {
-    removeProfilePictureHelper(setEditedData, editedData, 'profilePicture');
+    setProfilePictureFile(null);
+    setEditedData({
+      ...editedData,
+      profilePicture: "",
+    });
   };
 
 const handleSaveProfile = async () => {
+  if (isSavingProfile) return;
   if (
     !editedData.firstName ||
     !editedData.lastName ||
@@ -168,8 +183,29 @@ const handleSaveProfile = async () => {
     toast.error(phoneValidation.error);
     return;
   }
+  setIsSavingProfile(true);
 
   try {
+    let profilePictureUrl = editedData.profilePicture;
+
+    if (profilePictureFile) {
+      const oldProfilePictureUrl = userData.profilePicture;
+
+      profilePictureUrl = await uploadProfilePicture(
+        profilePictureFile,
+        user.id,
+      );
+
+      // delete old image (if exists)
+      if (oldProfilePictureUrl) {
+        await deleteProfilePictureFromUrl(oldProfilePictureUrl);
+      }
+    }
+
+    else if (!editedData.profilePicture && userData.profilePicture) {
+      await deleteProfilePictureFromUrl(userData.profilePicture);
+      profilePictureUrl = null;
+    }
     const updatedUser = await authAPI.updateMe({
       firstName: editedData.firstName,
       lastName: editedData.lastName,
@@ -177,7 +213,7 @@ const handleSaveProfile = async () => {
       country: editedData.country,
       countryCode: editedData.countryCode,
       phone: editedData.phone,
-      profilePicture: editedData.profilePicture || null,
+      profilePicture: profilePictureUrl || null,
     });
 
     const newUserData = {
@@ -187,10 +223,13 @@ const handleSaveProfile = async () => {
 
     setUserData(newUserData);
     setEditedData(newUserData);
+    setProfilePictureFile(null);
     setIsEditing(false);
     toast.success("Profile updated successfully!");
   } catch (error) {
     toast.error(error.message || "Failed to update profile");
+  } finally {
+    setIsSavingProfile(false);
   }
 };
 

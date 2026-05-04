@@ -8,14 +8,13 @@ import { useAuth } from "../contexts/AuthContext";
 export function DashboardNav({ userName, userType }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { logout } = useAuth();
+const { user, loading, logout } = useAuth();
 
-  // Redirect to home if not logged in
-  useEffect(() => {
-    if (!localStorage.getItem("userId")) {
-      navigate("/");
-    }
-  }, [navigate]);
+useEffect(() => {
+  if (!loading && !user) {
+    navigate("/");
+  }
+}, [loading, user, navigate]);
 
   return (
     <nav className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200">

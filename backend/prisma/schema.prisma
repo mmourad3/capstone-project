@@ -280,44 +280,36 @@ model RoommateFeedback {
 // ========================================
 
 model CarpoolListing {
-  id                String   @id @default(uuid())
-  
-  driverId          String
-  driver            User     @relation(fields: [driverId], references: [id], onDelete: Cascade)
-  driverName        String
-  driverEmail       String
-  driverPhone       String
-  driverProfilePicture String?
-  driverGender      Gender
-  
-  university        String
-  region            String
-  pickupLocation    String
-  pickupSpot        String
-  destination       String
-  
-  date              String
-  endDate           String?
-  time              String
-  returnTime        String?
-  
-  driverSchedule    String   @db.Text // JSON array of schedule blocks
-  
-  seats             Int      @default(0)
-  totalSeats        Int
-  
-  price             String
-  carModel          String
-  
-  genderPreference  String   @default("both")
-  
-  status            String   @default("Active") // "Active" or "Full" only
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  passengers        CarpoolPassenger[]
-  
+  id             String   @id @default(uuid())
+
+  driverId       String
+  driver         User     @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  university     String
+  region         String
+  pickupSpot     String
+  destination    String
+
+  date           String
+  time           String
+  returnTime     String
+
+  driverSchedule String   @db.Text // JSON array with ONE selected schedule block
+
+  seats          Int      @default(0)
+  totalSeats     Int
+
+  price          String
+  carModel       String
+
+  genderPreference String @default("both") // "both" or "same"
+  status         String   @default("Active") // "Active" or "Full"
+
+  passengers     CarpoolPassenger[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
   @@index([driverId])
   @@index([university, region, status])
   @@index([date])
@@ -325,6 +317,7 @@ model CarpoolListing {
 }
 
 model CarpoolPassenger {
+<<<<<<< HEAD
   id              String   @id @default(uuid())
   
   passengerId     String
@@ -343,6 +336,19 @@ model CarpoolPassenger {
   joinedAt        DateTime @default(now())
   updatedAt DateTime @updatedAt
   
+=======
+  id          String   @id @default(uuid())
+
+  passengerId String
+  passenger   User     @relation(fields: [passengerId], references: [id], onDelete: Cascade)
+
+  carpoolId   String
+  carpool     CarpoolListing @relation(fields: [carpoolId], references: [id], onDelete: Cascade)
+
+  status      String   @default("Confirmed")
+  joinedAt    DateTime @default(now())
+
+>>>>>>> 09e2ec550d79a039c8bfc4c8a5239d72a9b62607
   @@unique([passengerId, carpoolId])
   @@index([passengerId])
   @@index([carpoolId])

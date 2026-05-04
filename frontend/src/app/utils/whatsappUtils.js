@@ -35,7 +35,7 @@ export const openWhatsAppChat = (phoneNumber, message = "") => {
  * @param {string} userUniversity - Current user's university
  */
 export const contactCarpoolDriver = (carpool, userUniversity) => {
-  const message = `Hi ${carpool.driverName}, I'm interested in joining your carpool from ${carpool.pickupLocation} to ${userUniversity} on ${carpool.date} at ${carpool.time}. Available seats: ${carpool.seats}`;
+  const message = `Hi ${carpool.driverName}, I'm interested in joining your carpool from ${carpool.pickupSpot} to ${userUniversity} on ${carpool.date} at ${carpool.time}.`;
   
   return openWhatsAppChat(
     carpool.driverPhone,

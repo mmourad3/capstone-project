@@ -2,7 +2,6 @@ import { MapPin, Clock, Users, MessageCircle, Trash2, X, DollarSign, Calendar, C
 import { getDayAbbreviation, getReturnTime, formatPassengerCount, formatCarpoolLocation } from "../utils/carpoolHelpers";
 import { ProfilePicture } from "./ProfilePicture";
 import { openWhatsAppChat } from "../utils/whatsappUtils";
-import { getUserById } from "../data/demoData";
 
 export function CarpoolCard({ 
   carpool, 
@@ -12,18 +11,13 @@ export function CarpoolCard({
   onLeave,
   onContact,
   onDelete,
-  onAddDemoPassenger,
   onRemovePassenger,
   isJoinDisabled = false,
   joinButtonText = "Join Ride"
 }) {
   const returnTime = getReturnTime(carpool);
 
-  // Get current user info for WhatsApp message
-  const userId = localStorage.getItem('userId');
-  const currentUser = getUserById(userId);
-  const driverName = currentUser?.name || carpool.driverName || 'the driver';
-
+  const driverName = carpool.driverName || "the driver";
   // Get days from the driver's selected schedule block (there's only one per carpool)
   const getScheduleDays = () => {
     if (!carpool.driverSchedule || carpool.driverSchedule.length === 0) return [];
@@ -80,7 +74,7 @@ export function CarpoolCard({
             <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               <div className="flex items-center gap-2">
                 <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span>{carpool.date}{carpool.endDate ? ` - ${carpool.endDate}` : ''}</span>
+                <span>{carpool.date}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -196,16 +190,6 @@ export function CarpoolCard({
           </div>
           
           <div className="flex flex-row lg:flex-col gap-2">
-            {onAddDemoPassenger && (
-              <button
-                onClick={() => onAddDemoPassenger?.(carpool.id)}
-                className="flex items-center gap-2 bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-400 px-3 sm:px-4 py-2 rounded-lg hover:bg-green-100 dark:hover:bg-green-500/30 transition-colors flex-1 lg:flex-initial justify-center text-xs sm:text-sm cursor-pointer"
-                title="Add a demo passenger for testing"
-              >
-                <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                + Demo
-              </button>
-            )}
             <button
               onClick={() => onDelete?.(carpool.id)}
               className="flex items-center gap-2 bg-red-50 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-3 sm:px-4 py-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/30 transition-colors flex-1 lg:flex-initial justify-center text-xs sm:text-sm cursor-pointer"
@@ -277,7 +261,7 @@ export function CarpoolCard({
           <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
             <div className="flex items-center gap-2">
               <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span>{carpool.date}{carpool.endDate ? ` - ${carpool.endDate}` : ''}</span>
+              <span>{carpool.date}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-3 h-3 sm:w-4 sm:h-4" />

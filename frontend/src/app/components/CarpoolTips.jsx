@@ -6,11 +6,16 @@ import {
   MessageCircle,
   ShieldCheck,
   UserCheck,
+<<<<<<< HEAD
 } from 'lucide-react';
+=======
+} from "lucide-react";
+>>>>>>> 09e2ec550d79a039c8bfc4c8a5239d72a9b62607
 
 const carpoolRules = [
   {
     icon: UserCheck,
+<<<<<<< HEAD
     title: 'Students Only',
     text: 'Only registered students can create or join carpools.',
   },
@@ -38,6 +43,35 @@ const carpoolRules = [
     icon: ShieldCheck,
     title: 'Safety First',
     text: 'Share only necessary info, meet in safe public places, drive safely, and avoid harassment or illegal behavior.',
+=======
+    title: "Students Only",
+    text: "Only registered students can create or join carpools.",
+  },
+  {
+    icon: Clock,
+    title: "Respect Schedule",
+    text: "Be on time and notify others quickly if you are running late.",
+  },
+  {
+    icon: MapPin,
+    title: "Pickup & Drop Clarity",
+    text: "Define the pickup location, destination, departure time, and return time clearly.",
+  },
+  {
+    icon: DollarSign,
+    title: "Fair Cost Sharing",
+    text: "Fuel costs should be shared fairly. Carpools are not for profit-making.",
+  },
+  {
+    icon: MessageCircle,
+    title: "Communication",
+    text: "Use WhatsApp to confirm ride details and coordinate with the group.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Safety First",
+    text: "Share only necessary info, meet in safe public places, drive safely, and avoid harassment or illegal behavior.",
+>>>>>>> 09e2ec550d79a039c8bfc4c8a5239d72a9b62607
   },
 ];
 
@@ -45,8 +79,8 @@ const carpoolRules = [
  * Carpool Tips Component
  * Displays rules for riders or a checklist for drivers.
  */
-export function CarpoolTips({ type = 'rider' }) {
-  if (type === 'rider') {
+export function CarpoolTips({ type = "rider" }) {
+  if (type === "rider") {
     return (
       <div className="mt-6 sm:mt-8 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-4 sm:p-6">
         <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2 text-sm sm:text-base">
@@ -75,7 +109,7 @@ export function CarpoolTips({ type = 'rider' }) {
     );
   }
 
-  if (type === 'driver') {
+  if (type === "driver") {
     return (
       <div className="mt-6 sm:mt-8 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-4 sm:p-6">
         <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2 text-sm sm:text-base">
@@ -84,10 +118,22 @@ export function CarpoolTips({ type = 'rider' }) {
         </h3>
         <ul className="space-y-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 list-disc pl-5">
           <li>Only registered students can join your carpool.</li>
+<<<<<<< HEAD
           <li>Confirm passengers, pickup location, destination, time, and cost on WhatsApp.</li>
           <li>Be punctual and notify passengers if you are running late.</li>
           <li>Share fuel costs fairly and do not use carpools for profit.</li>
           <li>Drive safely, follow traffic rules, and keep the ride respectful.</li>
+=======
+          <li>
+            Confirm passengers, pickup location, destination, time, and cost on
+            WhatsApp.
+          </li>
+          <li>Be punctual and notify passengers if you are running late.</li>
+          <li>Share fuel costs fairly and do not use carpools for profit.</li>
+          <li>
+            Drive safely, follow traffic rules, and keep the ride respectful.
+          </li>
+>>>>>>> 09e2ec550d79a039c8bfc4c8a5239d72a9b62607
           <li>Delete your listing when it is no longer needed.</li>
         </ul>
       </div>

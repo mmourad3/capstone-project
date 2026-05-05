@@ -64,6 +64,27 @@ export const UserModel = {
 
     return blocks.map(parseScheduleBlock);
   },
+  
+  updateScheduleBlocks: async (userId, classSchedule) => {
+    await prisma.classScheduleBlock.deleteMany({
+      where: { userId },
+    });
+
+    await prisma.classScheduleBlock.createMany({
+      data: classSchedule.map((block) => ({
+        userId,
+        days: JSON.stringify(block.days || []),
+        startTime: block.startTime,
+        endTime: block.endTime,
+      })),
+    });
+
+    const savedBlocks = await prisma.classScheduleBlock.findMany({
+      where: { userId },
+    });
+
+    return savedBlocks.map(parseScheduleBlock);
+  },
 
   delete: (id) =>
     prisma.user.delete({

@@ -7,6 +7,11 @@ import { toast } from "react-toastify";
  */
 export const openWhatsAppChat = (phoneNumber, message = "") => {
   try {
+    if (!phoneNumber) {
+      console.error("No phone number provided:", phoneNumber);
+      toast.error("Phone number not available");
+      return false;
+    }
     // Remove any non-digit characters from phone number
     const cleanPhone = phoneNumber.replace(/\D/g, '');
     
@@ -50,17 +55,32 @@ export const contactCarpoolDriver = (carpool, userUniversity) => {
  * @param {string} seekerUniversity - University of the seeker
  */
 export const contactDormProvider = (listing, seekerName, seekerUniversity) => {
-  const providerName = listing.posterName || listing.poster || 'there';
-  const listingTitle = listing.title || 'your dorm listing';
-  
-  const message = `Hi ${providerName}, I'm interested in your dorm listing "${listingTitle}" on UniMate!
+  const isPhoneOnly = typeof listing === "string";
+
+  const providerName = isPhoneOnly
+    ? "there"
+    : listing.posterName || listing.poster?.name || listing.poster || "there";
+
+  const listingTitle = isPhoneOnly
+    ? "your dorm listing"
+    : listing.title || "";
+
+  const message = `Hi ${providerName}, I'm interested in your dorm listing on UniMate!
 
 I'm ${seekerName}, a student at ${seekerUniversity}. Let's chat about the room!`;
-  
-  return openWhatsAppChat(
-    listing.whatsapp || listing.posterPhone,
-    message
-  );
+
+  const phone = isPhoneOnly
+    ? listing
+    : listing.whatsapp ||
+      listing.posterPhone ||
+      listing.providerPhone ||
+      listing.phone ||
+      listing.poster?.phone ||
+      listing.user?.phone;
+
+  console.log("Resolved phone:", phone);
+
+  return openWhatsAppChat(phone, message);
 };
 
 /**
@@ -93,7 +113,7 @@ export const contactDormSeeker = (seekerProfile, providerName, providerEmail) =>
     message = `Hi ${seekerName}! I'm ${providerName}, your roommate. We're connected on UniMate. Looking forward to being roommates!`;
   } else {
     // Pending request or first contact
-    message = `Hi ${seekerName}, I saw your roommate request on UniMate. I'm interested in discussing! 😊`;
+    message = `Hi ${seekerName}, I saw your roommate request on UniMate. I'm interested in discussing!`;
   }
   
   return openWhatsAppChat(

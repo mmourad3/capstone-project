@@ -41,16 +41,16 @@ export const getMyDormListings = async (req, res) => {
 
 export const createDormListing = async (req, res) => {
   try {
-    const pendingFeedback = await RoommateModel.findPendingFeedbackForUser(
-      req.user.id,
-    );
+    // const pendingFeedback = await RoommateModel.findPendingFeedbackForUser(
+    //   req.user.id,
+    // );
 
-    if (pendingFeedback.length > 0) {
-      return res.status(400).json({
-        message:
-          "Please submit feedback for your ended roommate relationship before creating a new dorm listing",
-      });
-    }
+    // if (pendingFeedback.length > 0) {
+    //   return res.status(400).json({
+    //     message:
+    //       "Please submit feedback for your ended roommate relationship before creating a new dorm listing",
+    //   });
+    // }
 
     const dorm = await DormListingModel.create(req.user.id, {
       ...req.body,
@@ -87,16 +87,16 @@ export const updateDormListing = async (req, res) => {
       });
     }
     if (req.body.status === "Active") {
-      const pendingFeedback = await RoommateModel.findPendingFeedbackForUser(
-        req.user.id,
-      );
+      // const pendingFeedback = await RoommateModel.findPendingFeedbackForUser(
+      //   req.user.id,
+      // );
 
-      if (pendingFeedback.length > 0) {
-        return res.status(400).json({
-          message:
-            "Please submit feedback for your ended roommate relationship before activating a dorm listing",
-        });
-      }
+      // if (pendingFeedback.length > 0) {
+      //   return res.status(400).json({
+      //     message:
+      //       "Please submit feedback for your ended roommate relationship before activating a dorm listing",
+      //   });
+      // }
       req.body.lastActivatedAt = new Date();
     }
 

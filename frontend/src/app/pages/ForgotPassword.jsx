@@ -64,22 +64,11 @@ export default function ForgotPassword() {
     try {
       // Try API first
       await authAPI.forgotPassword(email.toLowerCase().trim());
-      
+
       // Success - show confirmation message
       setIsSubmitted(true);
     } catch (err) {
-      console.log('ℹ️ Backend not available - using local demo mode');
-      
-      // FALLBACK: Use localStorage (for demo/development without backend)
-      const storedEmail = localStorage.getItem('userEmail');
-      
-      if (!storedEmail || email.toLowerCase().trim() !== storedEmail) {
-        setError("No account found with this email address. Please check your email or sign up.");
-        setIsLoading(false);
-        return;
-      }
-
-      // Email exists - show success message
+      console.log("Forgot password backend not available:", err);
       setIsSubmitted(true);
     } finally {
       setIsLoading(false);

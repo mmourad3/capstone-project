@@ -37,13 +37,14 @@ export default function LifestyleQuestionnaire() {
   const { user } = useAuth();
   const role = user?.role || "dorm_seeker";
   
-  // Redirect carpool users - questionnaire is ONLY for dorm seekers and providers
-  useEffect(() => {
-    if (user?.role === 'carpool') {
-      console.log('[LifestyleQuestionnaire] Carpool users do not need questionnaire, redirecting to dashboard');
-      navigateToDashboard(userRole, navigate);
-    }
-  }, [navigate]);
+useEffect(() => {
+  if (user?.role === "carpool") {
+    console.log(
+      "[LifestyleQuestionnaire] Carpool users do not need questionnaire, redirecting to dashboard",
+    );
+    navigateToDashboard(user.role, navigate);
+  }
+}, [user, navigate]);
   
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 6;
@@ -102,15 +103,14 @@ export default function LifestyleQuestionnaire() {
     try {
       const result = await questionnaireAPI.save(formData);
 
-      localStorage.removeItem("signupFormData");
-
       const returnToProfile = localStorage.getItem("returnToProfile");
 
       if (returnToProfile === "true") {
         localStorage.removeItem("returnToProfile");
         toast.success("Lifestyle preferences updated successfully!");
         navigate("/profile");
-      } else {
+        return;
+      } 
         if (result.matchNotification?.matchCount > 0) {
           const count = result.matchNotification.matchCount;
           toast.success(
@@ -120,7 +120,7 @@ export default function LifestyleQuestionnaire() {
           toast.success("Questionnaire completed successfully!");
         }
         navigateToDashboard(role, navigate);
-      }
+      
     } catch (error) {
       toast.error(error.message || "Failed to save questionnaire");
     }

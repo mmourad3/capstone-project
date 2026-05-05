@@ -143,16 +143,16 @@ if (pendingRequest) {
   });
 }
 
-const pendingFeedback = await RoommateModel.findPendingFeedbackForUser(
-  req.user.id,
-);
+// const pendingFeedback = await RoommateModel.findPendingFeedbackForUser(
+//   req.user.id,
+// );
 
-if (pendingFeedback.length > 0) {
-  return res.status(400).json({
-    message:
-      "Please submit feedback for your ended roommate relationship before sending a new request",
-  });
-}
+// if (pendingFeedback.length > 0) {
+//   return res.status(400).json({
+//     message:
+//       "Please submit feedback for your ended roommate relationship before sending a new request",
+//   });
+// }
 
 const request = await RoommateModel.createRequest({
   senderId: req.user.id,
@@ -177,20 +177,20 @@ const request = await RoommateModel.createRequest({
   }
 };
 
-export const getPendingFeedback = async (req, res) => {
-  try {
-    const relationships = await RoommateModel.findPendingFeedbackForUser(
-      req.user.id,
-    );
+// export const getPendingFeedback = async (req, res) => {
+//   try {
+//     const relationships = await RoommateModel.findPendingFeedbackForUser(
+//       req.user.id,
+//     );
 
-    return res.json(relationships);
-  } catch (error) {
-    console.error("Get pending feedback error:", error);
-    return res
-      .status(500)
-      .json({ message: "Failed to fetch pending feedback" });
-  }
-};
+//     return res.json(relationships);
+//   } catch (error) {
+//     console.error("Get pending feedback error:", error);
+//     return res
+//       .status(500)
+//       .json({ message: "Failed to fetch pending feedback" });
+//   }
+// };
 
 export const acceptRequest = async (req, res) => {
   try {
@@ -252,29 +252,29 @@ export const endRelationship = async (req, res) => {
   }
 };
 
-export const submitFeedback = async (req, res) => {
-  try {
-    const { rating, endReason, importantFactor } = req.body;
+// export const submitFeedback = async (req, res) => {
+//   try {
+//     const { rating, endReason, importantFactor } = req.body;
 
-    if (!rating || !endReason || !importantFactor) {
-      return res.status(400).json({
-        message: "Rating, end reason, and important factor are required",
-      });
-    }
+//     if (!rating || !endReason || !importantFactor) {
+//       return res.status(400).json({
+//         message: "Rating, end reason, and important factor are required",
+//       });
+//     }
 
-    const feedback = await RoommateModel.createFeedback(
-      req.params.id,
-      req.user.id,
-      req.body,
-    );
+//     const feedback = await RoommateModel.createFeedback(
+//       req.params.id,
+//       req.user.id,
+//       req.body,
+//     );
 
-    return res.status(201).json({
-      message: "Feedback submitted",
-      feedback,
-    });
-  } catch (error) {
-    console.error("Submit roommate feedback error:", error);
-    const [status, message] = getErrorResponse(error);
-    return res.status(status).json({ message });
-  }
-};
+//     return res.status(201).json({
+//       message: "Feedback submitted",
+//       feedback,
+//     });
+//   } catch (error) {
+//     console.error("Submit roommate feedback error:", error);
+//     const [status, message] = getErrorResponse(error);
+//     return res.status(status).json({ message });
+//   }
+// };

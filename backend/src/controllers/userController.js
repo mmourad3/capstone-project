@@ -330,3 +330,39 @@ export const changePassword = async (req, res) => {
     return res.status(500).json({ message: "Failed to change password" });
   }
 };
+
+export const updateMySchedule = async (req, res) => {
+  try {
+    const { classSchedule } = req.body;
+
+    if (!Array.isArray(classSchedule) || classSchedule.length === 0) {
+      return res.status(400).json({
+        message: "Please add at least one schedule block",
+      });
+    }
+
+    for (const block of classSchedule) {
+      if (!Array.isArray(block.days) || block.days.length === 0) {
+        return res.status(400).json({
+          message: "Each schedule block must have at least one day",
+        });
+      }
+
+      if (!block.startTime || !block.endTime) {
+        return res.status(400).json({
+          message: "Each schedule block must have start and end time",
+        });
+      }
+    }
+
+    const updatedSchedule = await UserModel.updateScheduleBlocks(
+      req.user.id,
+      classSchedule,
+    );
+
+    return res.json({ classSchedule: updatedSchedule });
+  } catch (err) {
+    console.error("Update schedule error:", err);
+    return res.status(500).json({ message: "Failed to update schedule" });
+  }
+};

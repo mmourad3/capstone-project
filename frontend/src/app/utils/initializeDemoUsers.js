@@ -187,42 +187,4 @@ export const initializeDemoUsers = () => {
       },
     },
   ];
-
-  // Get existing registered users
-  const registeredUsers = JSON.parse(
-    localStorage.getItem("registeredUsers") || "[]",
-  );
-
-  // Add each demo user if they don't already exist
-  demoUsers.forEach((demoUser) => {
-    const exists = registeredUsers.some(
-      (user) => user.email === demoUser.email,
-    );
-
-    if (!exists) {
-      // Add user to registeredUsers only if they don't exist
-      registeredUsers.push({
-        email: demoUser.email,
-        userId: demoUser.userId,
-        name: demoUser.name,
-        phone: demoUser.phone,
-        country: demoUser.country,
-        gender: demoUser.gender,
-        profilePicture: demoUser.picture,
-        role: demoUser.role,
-      });
-    }
-
-    // ALWAYS store questionnaire data for demo users (even if they already exist)
-    const q = demoUser.questionnaire;
-    Object.keys(q).forEach((key) => {
-      const value = Array.isArray(q[key]) ? q[key].join(",") : q[key];
-      localStorage.setItem(`q_${key}_${demoUser.email}`, value);
-    });
-  });
-
-  // Save updated registeredUsers
-  localStorage.setItem("registeredUsers", JSON.stringify(registeredUsers));
-
-  console.log("✅ Demo users initialized with questionnaire data");
-};
+}

@@ -297,7 +297,6 @@ useEffect(() => {
     }
   };
 
-  // Load favorites from localStorage on mount
 useEffect(() => {
   const loadFavorites = async (showError = false) => {
     try {

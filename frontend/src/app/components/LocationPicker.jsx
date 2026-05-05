@@ -130,21 +130,83 @@ export function LocationPicker({ value, onChange, onAddressChange, countryCode =
       console.log('✅ [LocationPicker] Got coordinates:', coords);
       
       // Reverse geocode to get address
-      const addressResult = await reverseGeocode(coords.lat, coords.lng);
-      console.log('📍 [LocationPicker] Reverse geocoded address:', addressResult);
+      // const addressResult = await reverseGeocode(coords.lat, coords.lng);
+      // console.log('📍 [LocationPicker] Reverse geocoded address:', addressResult);
       
-      if (addressResult) {
-        setSearchQuery(addressResult);
-        setPosition({ lat: coords.lat, lng: coords.lng });
-        onChange({ lat: coords.lat, lng: coords.lng });
-        setAddress(addressResult);
-        if (onAddressChange) {
-          onAddressChange(addressResult);
-        }
-        setSuccess('Location detected successfully!');
-      } else {
-        setError('Could not determine your address. Please search manually.');
+      // if (addressResult) {
+      //   setSearchQuery(addressResult);
+      //   setPosition({ lat: coords.lat, lng: coords.lng });
+      //   onChange({ lat: coords.lat, lng: coords.lng });
+      //   setAddress(addressResult);
+      //   if (onAddressChange) {
+      //     onAddressChange(addressResult);
+      //   }
+      //   setSuccess('Location detected successfully!');
+      // } else {
+      //   setError('Could not determine your address. Please search manually.');
+      // }
+
+
+
+
+      // const addressResult = await reverseGeocode(coords.lat, coords.lng);
+
+      // const finalAddress =
+      //   addressResult || `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
+
+      // // ALWAYS set position
+      // setPosition({ lat: coords.lat, lng: coords.lng });
+      // onChange({ lat: coords.lat, lng: coords.lng });
+
+      // // ALWAYS set address (fallback if needed)
+      // setAddress(finalAddress);
+      // setSearchQuery(finalAddress);
+
+      // if (onAddressChange) {
+      //   onAddressChange(finalAddress);
+      // }
+
+      // // Show different message depending on success
+      // if (addressResult) {
+      //   setSuccess("Location detected successfully!");
+      // } else {
+      //   setSuccess("Location set (address unavailable)");
+      // }
+
+
+
+      let addressResult = null;
+
+      try {
+        addressResult = await reverseGeocode(coords.lat, coords.lng);
+      } catch (error) {
+        console.warn(
+          "Reverse geocode failed, using coordinates instead:",
+          error,
+        );
       }
+
+      const finalAddress =
+        addressResult || `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
+
+      // ALWAYS set position
+      setPosition({ lat: coords.lat, lng: coords.lng });
+      onChange({ lat: coords.lat, lng: coords.lng });
+
+      // ALWAYS set address (fallback if needed)
+      setSearchQuery(finalAddress);
+      setAddress(finalAddress);
+
+      if (onAddressChange) {
+        onAddressChange(finalAddress);
+      }
+
+      // Show success either way
+      setSuccess(
+        addressResult
+          ? "Location detected successfully!"
+          : "Location set using coordinates.",
+      );
     } catch (error) {
       // More user-friendly error messages
       if (error.code === 1 || error.message?.includes('Permission denied')) {

@@ -47,8 +47,8 @@ model User {
   roommateAsSeeker         RoommateRelationship[] @relation("RoommateSeeker")
   roommateAsProvider       RoommateRelationship[] @relation("RoommateProvider")
 
-  roommateFeedbackGiven    RoommateFeedback[] @relation("RoommateFeedbackReviewer")
-  roommateFeedbackReceived RoommateFeedback[] @relation("RoommateFeedbackRoommate")
+  // roommateFeedbackGiven    RoommateFeedback[] @relation("RoommateFeedbackReviewer")
+  // roommateFeedbackReceived RoommateFeedback[] @relation("RoommateFeedbackRoommate")
     
   
   carpoolListings   CarpoolListing[]
@@ -240,7 +240,7 @@ model RoommateRelationship {
   startedAt   DateTime @default(now())
   endedAt     DateTime?
 
-  feedback    RoommateFeedback[]
+  // feedback    RoommateFeedback[]
 
   @@index([seekerId])
   @@index([providerId])
@@ -248,30 +248,30 @@ model RoommateRelationship {
   @@index([status])
 }
 
-model RoommateFeedback {
-  id              String   @id @default(uuid())
+// model RoommateFeedback {
+//   id              String   @id @default(uuid())
 
-  relationshipId  String
-  relationship    RoommateRelationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+//   relationshipId  String
+//   relationship    RoommateRelationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
 
-  reviewerId      String
-  reviewer        User     @relation("RoommateFeedbackReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+//   reviewerId      String
+//   reviewer        User     @relation("RoommateFeedbackReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
 
-  roommateId      String
-  roommate        User     @relation("RoommateFeedbackRoommate", fields: [roommateId], references: [id], onDelete: Cascade)
+//   roommateId      String
+//   roommate        User     @relation("RoommateFeedbackRoommate", fields: [roommateId], references: [id], onDelete: Cascade)
 
-  rating          Int
-  endReason       String
-  conflictType    String?
-  importantFactor String
+//   rating          Int
+//   endReason       String
+//   conflictType    String?
+//   importantFactor String
 
-  createdAt       DateTime @default(now())
+//   createdAt       DateTime @default(now())
 
-  @@unique([relationshipId, reviewerId])
-  @@index([relationshipId])
-  @@index([reviewerId])
-  @@index([roommateId])
-}
+//   @@unique([relationshipId, reviewerId])
+//   @@index([relationshipId])
+//   @@index([reviewerId])
+//   @@index([roommateId])
+// }
 
 // ========================================
 // CARPOOL LISTINGS

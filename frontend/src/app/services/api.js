@@ -110,6 +110,21 @@ export const authAPI = {
 
     return result;
   },
+  updateSchedule: async (classSchedule) => {
+    const res = await fetch(`${API_BASE}/auth/me/schedule`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ classSchedule }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message || "Failed to update schedule");
+    }
+
+    return result;
+  },
 };
 
 export const userAPI = {
@@ -464,31 +479,31 @@ export const roommateAPI = {
     return result;
   },
 
-  submitFeedback: async (relationshipId, data) => {
-    const res = await fetch(
-      `${API_BASE}/roommates/relationships/${relationshipId}/feedback`,
-      {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      },
-    );
+  // submitFeedback: async (relationshipId, data) => {
+  //   const res = await fetch(
+  //     `${API_BASE}/roommates/relationships/${relationshipId}/feedback`,
+  //     {
+  //       method: "POST",
+  //       headers: getAuthHeaders(),
+  //       body: JSON.stringify(data),
+  //     },
+  //   );
 
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.message || "Failed to submit feedback");
-    return result;
-  },
+  //   const result = await res.json();
+  //   if (!res.ok) throw new Error(result.message || "Failed to submit feedback");
+  //   return result;
+  // },
 
-  getPendingFeedback: async () => {
-    const res = await fetch(`${API_BASE}/roommates/feedback/pending`, {
-      headers: getAuthHeaders(),
-    });
+//   getPendingFeedback: async () => {
+//     const res = await fetch(`${API_BASE}/roommates/feedback/pending`, {
+//       headers: getAuthHeaders(),
+//     });
 
-    const result = await res.json();
-    if (!res.ok)
-      throw new Error(result.message || "Failed to fetch pending feedback");
-    return result;
-  },
+//     const result = await res.json();
+//     if (!res.ok)
+//       throw new Error(result.message || "Failed to fetch pending feedback");
+//     return result;
+//   },
 };
 
 

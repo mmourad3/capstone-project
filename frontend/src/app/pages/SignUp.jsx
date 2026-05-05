@@ -378,17 +378,6 @@ export default function SignUp() {
     setIsLoading(true);
 
     try {
-      let profilePictureUrl = null;
-
-      if (profilePicture) {
-        const { uploadProfilePicture } =
-          await import("../utils/uploadProfilePicture");
-
-        profilePictureUrl = await uploadProfilePicture(
-          profilePicture,
-          email, // or temporary ID
-        );
-      }
       const signupData = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -402,10 +391,20 @@ export default function SignUp() {
         university,
         region: role === "carpool" ? carpoolRegion : null,
         classSchedule: role === "carpool" ? classSchedule : [],
-        profilePicture: profilePictureUrl,
+        profilePicture: null,
       };
 
       const response = await register(signupData);
+      if (profilePicture) {
+        const profilePictureUrl = await uploadProfilePicture(
+          profilePicture,
+          response.user.id,
+        );
+
+        await authAPI.updateMe({
+          profilePicture: profilePictureUrl,
+        });
+      }
 
       if (response.user.role === "carpool") {
         navigateToDashboard(response.user.role, navigate);

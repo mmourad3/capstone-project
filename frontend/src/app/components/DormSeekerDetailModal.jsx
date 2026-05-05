@@ -290,7 +290,9 @@ if (!selectedListing) return null;
                   dormId={selectedListing.id}
                 />
 
-                {hasPendingRequest && !requestedToThisUser && !hasActiveRoommate && (
+                {hasPendingRequest &&
+                  !requestedToThisUser &&
+                  !hasActiveRoommate && (
                     <p className="text-xs text-orange-600 dark:text-orange-400 text-center font-medium mt-1.5">
                       Cancel your pending request first
                     </p>

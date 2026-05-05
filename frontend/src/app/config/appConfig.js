@@ -93,7 +93,7 @@ export const getLocationCountryISO = () => {
 
 /**
  * Get the user's country ISO code, defaulting to Lebanon if not set
- * @param {string} storedCountryCode - The country code from localStorage
+ * @param {string} storedCountryCode
  * @returns {string} 2-letter ISO country code
  */
 export const getUserCountryISO = (storedCountryCode) => {
@@ -195,10 +195,6 @@ export const FEATURES = {
   DORM_SEEKER: true,
 };
 
-// ============================================================
-// APP METADATA
-// ============================================================
-
 export const APP_INFO = {
   name: 'UniMate',
   version: '1.0.0',
@@ -206,18 +202,7 @@ export const APP_INFO = {
   supportEmail: 'support@unimate.edu.lb',
 };
 
-// ============================================================
-// API CONFIGURATION
-// ============================================================
-
-/**
- * Backend API URL
- * Note: Backend is currently disabled - app uses localStorage for all data
- */
 export const API_BASE_URL = 'http://localhost:5000';
 
-/**
- * API refresh interval for real-time updates (in milliseconds)
- * Default: 5000ms (5 seconds)
- */
+
 export const API_REFRESH_INTERVAL = 5000;

@@ -549,6 +549,7 @@ const toggleSaved = async (id) => {
         {userData.role === "carpool" && (
           <ClassScheduleSection
             classSchedule={classSchedule}
+            setClassSchedule={setClassSchedule}
             carpoolRegion={carpoolRegion}
             isEditingSchedule={isEditingSchedule}
             setIsEditingSchedule={setIsEditingSchedule}

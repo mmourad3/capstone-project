@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react';
 import { Users, Check, X, UserMinus, MessageCircle, ExternalLink, User } from 'lucide-react';
 import { roommateAPI } from '../services/api';
 import { toast } from 'react-toastify';
-import RoommateFeedbackModal from './RoommateFeedbackModal';
+// import RoommateFeedbackModal from './RoommateFeedbackModal';
 import { useNavigate } from 'react-router';
 import { openWhatsAppChat } from '../utils/whatsappUtils';
 import { useAuth } from "../contexts/AuthContext";
 
-// Reusable View Profile Button Component
 function ViewProfileButton({ userId, from = 'profile', dormId = null, className = "" }) {
   const navigate = useNavigate();
   
@@ -41,10 +40,10 @@ export default function RoommateSection() {
   const [sentRequests, setSentRequests] = useState([]); // NEW: Track sent requests
   const [activeRoommates, setActiveRoommates] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [selectedRoommate, setSelectedRoommate] = useState(null);
-  const [pendingFeedback, setPendingFeedback] = useState([]);
-  const [feedbackOnlyRoommate, setFeedbackOnlyRoommate] = useState(null);
+  // const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  // const [selectedRoommate, setSelectedRoommate] = useState(null);
+  // const [pendingFeedback, setPendingFeedback] = useState([]);
+  // const [feedbackOnlyRoommate, setFeedbackOnlyRoommate] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -78,13 +77,13 @@ document.addEventListener("visibilitychange", handleVisibilityChange);
         roommateAPI.getIncomingRequests(),
         roommateAPI.getSentRequests(),
         roommateAPI.getActiveRoommates(),
-        roommateAPI.getPendingFeedback(),
+        // roommateAPI.getPendingFeedback(),
       ]);
 
       setPendingRequests(incoming);
       setSentRequests(sent);
       setActiveRoommates(roommates);
-      setPendingFeedback(feedbackNeeded);
+      // setPendingFeedback(feedbackNeeded);
     } catch (error) {
       toast.error("Failed to load roommate data");
     } finally {
@@ -114,7 +113,6 @@ const handleRejectRequest = async (requestId) => {
     toast.error(error.message || "Failed to reject request");
   }
 };
-  // NEW: Cancel sent request
   const handleCancelSentRequest = async (requestId) => {
     try {
       await roommateAPI.cancelRequest(requestId);
@@ -126,9 +124,21 @@ const handleRejectRequest = async (requestId) => {
     }
   };
 
+  // const handleEndRoommate = async (roommate) => {
+  //   setSelectedRoommate(roommate);
+  //   setShowFeedbackModal(true);
+  // };
+
   const handleEndRoommate = async (roommate) => {
-    setSelectedRoommate(roommate);
-    setShowFeedbackModal(true);
+    try {
+      await roommateAPI.endRelationship(roommate.id);
+      toast.success("Roommate relationship ended");
+      fetchRoommateData();
+      window.dispatchEvent(new Event("roommateDataChanged"));
+      window.dispatchEvent(new Event("roommateEnded"));
+    } catch (error) {
+      toast.error(error.message || "Failed to end relationship");
+    }
   };
 
   const handleContactWhatsApp = (roommate) => {
@@ -281,7 +291,7 @@ const handleRejectRequest = async (requestId) => {
             </div>
           </div>
         )}
-        {pendingFeedback.length > 0 && (
+        {/* {pendingFeedback.length > 0 && (
           <div className="mb-4 sm:mb-6">
             <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
               Feedback Required
@@ -313,7 +323,7 @@ const handleRejectRequest = async (requestId) => {
               ))}
             </div>
           </div>
-        )}
+        )} */}
         {/* Active Roommates */}
         <div>
           <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
@@ -398,7 +408,7 @@ const handleRejectRequest = async (requestId) => {
       </div>
 
       {/* Feedback Modal */}
-      {showFeedbackModal && selectedRoommate && (
+      {/* {showFeedbackModal && selectedRoommate && (
         <RoommateFeedbackModal
           roommate={selectedRoommate}
           onClose={() => {
@@ -409,8 +419,8 @@ const handleRejectRequest = async (requestId) => {
             window.dispatchEvent(new Event("roommateEnded"));
           }}
         />
-      )}
-      {feedbackOnlyRoommate && (
+      )} */}
+      {/* {feedbackOnlyRoommate && (
         <RoommateFeedbackModal
           roommate={feedbackOnlyRoommate}
           endRelationshipAfterSubmit={false}
@@ -420,7 +430,7 @@ const handleRejectRequest = async (requestId) => {
             window.dispatchEvent(new Event("roommateDataChanged"));
           }}
         />
-      )}
+      )} */}
     </>
   );
 }

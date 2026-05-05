@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Role Protection Hook
@@ -13,31 +14,33 @@ import { toast } from 'react-toastify';
  */
 export function useRoleProtection(requiredRole, options = {}) {
   const navigate = useNavigate();
+  const { user, loading, isAuthenticated } = useAuth();
   const { errorMessage, redirectHome = false } = options;
+  
 
   useEffect(() => {
-    const userRole = localStorage.getItem('userRole');
+  if (loading) return;
 
-    // If not logged in, redirect to home
-    if (!userRole) {
+  if (!isAuthenticated || !user) {
+    navigate('/login', { replace: true });
+    return;
+  }
+
+  const userRole = user.role;
+
+  if (userRole !== requiredRole) {
+    const message =
+      errorMessage || `Only ${getRoleDisplayName(requiredRole)} can access this page.`;
+
+    toast.error(message);
+
+    if (redirectHome) {
       navigate('/', { replace: true });
-      return;
+    } else {
+      navigate(getDashboardPath(userRole), { replace: true });
     }
-
-    // If user has wrong role, show error and redirect
-    if (userRole !== requiredRole) {
-      const message = errorMessage || `Only ${getRoleDisplayName(requiredRole)} can access this page.`;
-      toast.error(message);
-
-      if (redirectHome) {
-        navigate('/', { replace: true });
-      } else {
-        // Redirect to correct dashboard based on user's actual role
-        const dashboardPath = getDashboardPath(userRole);
-        navigate(dashboardPath, { replace: true });
-      }
-    }
-  }, [navigate, requiredRole, errorMessage, redirectHome]);
+  }
+}, [navigate, requiredRole, errorMessage, redirectHome, user, loading, isAuthenticated]);
 }
 
 /**

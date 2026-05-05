@@ -10,7 +10,8 @@ import {
   getMe,
   updateProfile,
   deleteMe,
-  changePassword
+  changePassword,
+  updateMySchedule
 } from "../controllers/userController.js";
 
 const router = express.Router();
@@ -23,6 +24,7 @@ router.get("/users", getAllUsers);
 router.get("/users/:id", getUser);
 router.get("/me", protect, getMe);
 router.put("/me", protect, updateProfile);
+router.put("/me/schedule", protect, updateMySchedule);
 router.put("/me/password", protect, changePassword);
 router.delete("/me", protect, deleteMe);
 export default router;

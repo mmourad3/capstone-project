@@ -23,7 +23,7 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
 
   // Check if user has required role (if specified)
   if (allowedRoles.length > 0 && user) {
-    const userRole = user.role || localStorage.getItem('userRole');
+  const userRole = user?.role;
     if (!allowedRoles.includes(userRole)) {
       // Redirect to appropriate dashboard based on user's actual role
       if (userRole === 'dorm_seeker') {

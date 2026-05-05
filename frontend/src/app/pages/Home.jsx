@@ -3,15 +3,10 @@ import { useEffect } from "react";
 import { Home as HomeIcon, Car, ArrowRight } from "lucide-react";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
-import { initializeDemoUsers } from "../utils/initializeDemoUsers";
 import dorm from "../images/dorm.png";
 import carpool from "../images/carpool.png";
 
 export default function Home() {
-  // Initialize demo users on home page load
-  useEffect(() => {
-    initializeDemoUsers();
-  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">

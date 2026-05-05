@@ -40,6 +40,7 @@ export default function RoommateSection() {
   const [sentRequests, setSentRequests] = useState([]); // NEW: Track sent requests
   const [activeRoommates, setActiveRoommates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingAccept, setLoadingAccept] = useState(null);
   // const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   // const [selectedRoommate, setSelectedRoommate] = useState(null);
   // const [pendingFeedback, setPendingFeedback] = useState([]);
@@ -92,14 +93,19 @@ document.addEventListener("visibilitychange", handleVisibilityChange);
   };
 
   const handleAcceptRequest = async (requestId) => {
+    if (loadingAccept === requestId) return;
+
     try {
+      setLoadingAccept(requestId);
+
       await roommateAPI.acceptRequest(requestId);
       toast.success("Roommate request accepted!");
-      fetchRoommateData();
-      window.dispatchEvent(new Event("roommateDataChanged"));
-      window.dispatchEvent(new Event("roommateAccepted"));
+
+      await fetchRoommateData();
     } catch (error) {
       toast.error(error.message || "Failed to accept request");
+    } finally {
+      setLoadingAccept(null);
     }
   };
 
@@ -218,7 +224,8 @@ const handleRejectRequest = async (requestId) => {
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                       <button
                         onClick={() => handleAcceptRequest(request.id)}
-                        className="flex-1 sm:flex-initial sm:min-w-[44px] p-2.5 sm:p-2 bg-green-500 dark:bg-green-600 text-white rounded-lg hover:bg-green-600 dark:hover:bg-green-700 transition-colors cursor-pointer shadow-sm flex items-center justify-center"
+                        disabled={loadingAccept === request.id}
+                        className="flex-1 sm:flex-initial sm:min-w-[44px] p-2.5 sm:p-2 bg-green-500 dark:bg-green-600 text-white rounded-lg hover:bg-green-600 dark:hover:bg-green-700 transition-colors cursor-pointer shadow-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Accept"
                       >
                         <Check className="w-5 h-5" />

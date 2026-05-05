@@ -246,6 +246,7 @@ model RoommateRelationship {
   @@index([providerId])
   @@index([dormId])
   @@index([status])
+  @@unique([seekerId, providerId, dormId])
 }
 
 // model RoommateFeedback {

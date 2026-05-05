@@ -214,7 +214,17 @@ export const RoommateModel = {
         throw new Error("NOT_REQUEST_RECIPIENT");
       }
 
-      if (request.status !== "Pending") {
+      const lockedRequest = await tx.roommateRequest.updateMany({
+        where: {
+          id: requestId,
+          status: "Pending",
+        },
+        data: {
+          status: "Accepted",
+        },
+      });
+
+      if (lockedRequest.count === 0) {
         throw new Error("REQUEST_NOT_PENDING");
       }
 

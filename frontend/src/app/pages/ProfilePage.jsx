@@ -5,24 +5,24 @@ import { ProfilePicture } from '../components/ProfilePicture';
 import { navigateToDashboard, getRoleDisplayName } from '../utils/navigationHelpers';
 import ProfileView from "../components/ProfileView";
 import { contactDormSeeker } from '../utils/whatsappUtils';
-import { userAPI, questionnaireAPI } from "../services/api";
+import { userAPI, questionnaireAPI,roommateAPI } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function ProfilePage() {
-  const { userId, providerId } = useParams(); // Handle both route params
+  const { userId, providerId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [viewerQuestionnaire, setViewerQuestionnaire] = useState(null);
+  const [areRoommates, setAreRoommates] = useState(false);
 
   // Get where we came from via URL parameter
   const searchParams = new URLSearchParams(location.search);
   const from = searchParams.get('from');
   const dormId = searchParams.get('dormId');
 
-  // Simple back handler
   const handleGoBack = () => {
     if (from === 'dashboard') {
       navigate(dormId ? `/dashboard/dorm-seeker?dorm=${dormId}` : '/dashboard/dorm-seeker');
@@ -74,6 +74,16 @@ export default function ProfilePage() {
         }
 
         const data = await userAPI.getById(targetUserId);
+        const activeRoommates = await roommateAPI
+          .getActiveRoommates()
+          .catch(() => []);
+
+        const isRoommate = activeRoommates.some(
+          (rm) =>
+            rm.roommateUserId === targetUserId || rm.userId === targetUserId,
+        );
+
+        setAreRoommates(isRoommate);
         const activeDorm = Array.isArray(data.dormListings)
           ? data.dormListings.find((dorm) => dorm.status === "Active")
           : null;
@@ -146,8 +156,7 @@ export default function ProfilePage() {
     const currentUserName = user?.name || `${user?.firstName || ""} ${user?.lastName || ""}`.trim();
     const currentUserEmail = user?.email || "";
     
-    // Use the contactDormSeeker utility function
-    contactDormSeeker(targetProfile, currentUserName, currentUserEmail);
+    contactDormSeeker(targetProfile, currentUserName, areRoommates);
   };
 
   return (

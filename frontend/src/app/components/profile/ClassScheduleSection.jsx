@@ -11,7 +11,8 @@ export function ClassScheduleSection({
   setIsEditingSchedule, 
   editedSchedule, 
   setEditedSchedule,
-  scheduleHelpers 
+  scheduleHelpers,
+  updateUser
 }) {
   const { addScheduleBlock, removeScheduleBlock, toggleDayInBlock, updateBlockTime, isDayUsedElsewhere } = scheduleHelpers;
 
@@ -38,8 +39,15 @@ export function ClassScheduleSection({
     try {
       const result = await authAPI.updateSchedule(editedSchedule);
 
-      setClassSchedule(result.classSchedule);
-      setEditedSchedule(result.classSchedule);
+      const updatedSchedule = result.classSchedule || [];
+
+      setClassSchedule(updatedSchedule);
+      setEditedSchedule(updatedSchedule);
+      updateUser({ classSchedule: updatedSchedule });
+
+      localStorage.setItem("classSchedule", JSON.stringify(updatedSchedule));
+      window.dispatchEvent(new Event("userDataUpdated"));
+      window.dispatchEvent(new Event("scheduleUpdated"));
 
       setIsEditingSchedule(false);
       toast.success("Class schedule updated successfully!");

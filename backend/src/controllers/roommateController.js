@@ -135,24 +135,27 @@ export const sendRequest = async (req, res) => {
       });
     }
 
-const pendingRequest = await RoommateModel.findPendingSentRequest(req.user.id);
 
-if (pendingRequest) {
+const existingPendingRequest = await RoommateModel.findPendingRequestForDorm(
+  req.user.id,
+  dormId,
+);
+
+if (existingPendingRequest) {
   return res.status(400).json({
-    message: "Cancel your pending request first",
+    message: "You already sent a request for this dorm",
   });
 }
 
-// const pendingFeedback = await RoommateModel.findPendingFeedbackForUser(
-//   req.user.id,
-// );
+const anyPendingRequest = await RoommateModel.findPendingSentRequest(
+  req.user.id,
+);
 
-// if (pendingFeedback.length > 0) {
-//   return res.status(400).json({
-//     message:
-//       "Please submit feedback for your ended roommate relationship before sending a new request",
-//   });
-// }
+if (anyPendingRequest) {
+  return res.status(400).json({
+    message: "Cancel your current pending request first",
+  });
+}
 
 const request = await RoommateModel.createRequest({
   senderId: req.user.id,
@@ -177,20 +180,6 @@ const request = await RoommateModel.createRequest({
   }
 };
 
-// export const getPendingFeedback = async (req, res) => {
-//   try {
-//     const relationships = await RoommateModel.findPendingFeedbackForUser(
-//       req.user.id,
-//     );
-
-//     return res.json(relationships);
-//   } catch (error) {
-//     console.error("Get pending feedback error:", error);
-//     return res
-//       .status(500)
-//       .json({ message: "Failed to fetch pending feedback" });
-//   }
-// };
 
 export const acceptRequest = async (req, res) => {
   try {
@@ -251,30 +240,3 @@ export const endRelationship = async (req, res) => {
     return res.status(status).json({ message });
   }
 };
-
-// export const submitFeedback = async (req, res) => {
-//   try {
-//     const { rating, endReason, importantFactor } = req.body;
-
-//     if (!rating || !endReason || !importantFactor) {
-//       return res.status(400).json({
-//         message: "Rating, end reason, and important factor are required",
-//       });
-//     }
-
-//     const feedback = await RoommateModel.createFeedback(
-//       req.params.id,
-//       req.user.id,
-//       req.body,
-//     );
-
-//     return res.status(201).json({
-//       message: "Feedback submitted",
-//       feedback,
-//     });
-//   } catch (error) {
-//     console.error("Submit roommate feedback error:", error);
-//     const [status, message] = getErrorResponse(error);
-//     return res.status(status).json({ message });
-//   }
-// };

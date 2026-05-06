@@ -22,8 +22,6 @@ export default function Contact() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Mock submission - in production, this would send to backend
-    console.log("Contact form submitted:", formData);
     setSubmitted(true);
     setTimeout(() => {
       setSubmitted(false);

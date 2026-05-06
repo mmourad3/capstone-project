@@ -17,11 +17,10 @@ export default function Privacy() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Check if user came from signup page - use sessionStorage to persist across re-renders
+  // Check if user came from signup page
   const from = location.state?.from || sessionStorage.getItem('privacyFrom');
   const formData = location.state?.formData || JSON.parse(sessionStorage.getItem('privacyFormData') || 'null');
 
-  // Store in sessionStorage when state is available
   if (location.state?.from) {
     sessionStorage.setItem('privacyFrom', location.state.from);
     if (location.state?.formData) {
@@ -33,26 +32,21 @@ export default function Privacy() {
 
   const handleBackNavigation = () => {
     if (from === 'signup' && formData) {
-      // Clear sessionStorage
       sessionStorage.removeItem('privacyFrom');
       sessionStorage.removeItem('privacyFormData');
-      // Navigate back to signup with preserved form data
       navigate('/signup', { state: { formData } });
     } else {
-      // Clear sessionStorage
       sessionStorage.removeItem('privacyFrom');
       sessionStorage.removeItem('privacyFormData');
-      // Navigate back to home
       navigate('/');
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
-      {/* Conditional Navigation: Only show Navbar if NOT from signup */}
       {from !== 'signup' && <Navbar />}
 
-      {/* Back Button - Always visible */}
+      {/* Back Button*/}
       <div className="absolute top-4 sm:top-8 left-4 sm:left-8 z-20">
         <Link
           to="#"

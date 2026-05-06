@@ -1,14 +1,11 @@
 import { Upload, XCircle } from "lucide-react";
 
 /**
- * Reusable ProfilePictureUpload component
- * Used in SignUp and Profile pages
- * 
- * @param {string} preview - Base64 preview URL
- * @param {function} onChange - Callback when file is selected (receives event)
- * @param {function} onRemove - Callback to remove picture
- * @param {boolean} required - Whether the field is required
- * @param {string} label - Custom label text
+ * @param {string} preview 
+ * @param {function} onChange
+ * @param {function} onRemove
+ * @param {boolean} required
+ * @param {string} label
  */
 export function ProfilePictureUpload({ 
   preview, 

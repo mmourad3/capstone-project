@@ -17,7 +17,6 @@ import CarpoolDashboard from "./app/pages/CarpoolDashboard";
 import ProfilePage from "./app/pages/ProfilePage";
 import NotFound from "./app/pages/NotFound";
 
-// UniMate Application Routes
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -33,8 +32,8 @@ export const router = createBrowserRouter([
       { path: "signup", Component: SignUp },
       { path: "forgot-password", Component: ForgotPassword },
       { path: "profile", Component: Profile },
-      { path: "profile/:userId", Component: ProfilePage }, // Unified profile - shows button based on roles
-      { path: "provider-profile/:providerId", Component: ProfilePage }, // Same component, different route
+      { path: "profile/:userId", Component: ProfilePage },
+      { path: "provider-profile/:providerId", Component: ProfilePage },
       { path: "lifestyle-questionnaire", Component: LifestyleQuestionnaire },
       { path: "dashboard/dorm-seeker", Component: DormSeekerDashboard },
       { path: "dashboard/dorm-provider", Component: DormProviderDashboard },

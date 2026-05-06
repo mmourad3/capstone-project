@@ -13,8 +13,6 @@ import { uploadDormImages, deleteRemovedDormImages } from "../utils/uploadDormIm
 
 export default function DormProviderDashboard() {  
   useRoleProtection('dorm_provider');
-  
-  // Get user data from centralized hook
   const userData = useUserData();
   const { userName, userId } = userData;
   
@@ -39,12 +37,7 @@ export default function DormProviderDashboard() {
   
   // Check if user has a "Found Roommate" listing
   const hasFoundRoommate = postedDorms.some(dorm => dorm.status === 'Found Roommate');
-
-  
-  // LOCATION COUNTRY: Always use Lebanon (LB) for location searches
-  // This is separate from phone number country - students can have international phone numbers
-  // but all dorms/listings must be in Lebanon
-  const locationCountryISO = 'LB'; // Force Lebanon for all location searches
+  const locationCountryISO = 'LB';
   const locationCountryName = 'Lebanon';
 
   useEffect(() => {

@@ -4,9 +4,6 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_CODE || "dev_secret";
 
-/**
- * SIGNUP / REGISTER
- */
 export const register = async (req, res) => {
   try {
     const {
@@ -93,9 +90,7 @@ export const register = async (req, res) => {
   }
 };
 
-/**
- * LOGIN
- */
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -146,9 +141,6 @@ export const login = async (req, res) => {
   }
 };
 
-/**
- * CHECK EMAIL EXISTS
- */
 export const checkEmailExists = async (req, res) => {
   try {
     const email = req.query.email?.toLowerCase().trim();
@@ -170,9 +162,6 @@ export const checkEmailExists = async (req, res) => {
   }
 };
 
-/**
- * CHECK PHONE EXISTS
- */
 export const checkPhoneExists = async (req, res) => {
   try {
     const phone = req.query.phone;
@@ -194,9 +183,6 @@ export const checkPhoneExists = async (req, res) => {
   }
 };
 
-/**
- * GET USER BY ID
- */
 export const getUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -222,9 +208,6 @@ export const getUser = async (req, res) => {
   }
 };
 
-/**
- * GET CURRENT USER
- */
 export const getMe = async (req, res) => {
   try {
     const user = await UserModel.findProfileById(req.user.id);
@@ -245,9 +228,6 @@ export const getMe = async (req, res) => {
   }
 };
 
-/**
- * UPDATE USER PROFILE
- */
 export const updateProfile = async (req, res) => {
   try {
     const updatedUser = await UserModel.update(req.user.id, req.body);
@@ -261,9 +241,6 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-/**
- * DELETE USER
- */
 export const deleteMe = async (req, res) => {
   try {
     const user = await UserModel.findById(req.user.id);
@@ -284,7 +261,6 @@ export const getAllUsers = async (req, res) => {
   try {
     const users = await UserModel.findAll();
 
-    // Remove passwords before sending
     const safeUsers = users.map(({ password, ...user }) => user);
 
     res.json(safeUsers);

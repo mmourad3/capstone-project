@@ -3,12 +3,8 @@ import { useState } from "react";
 import { validatePassword, getPasswordStrength } from "../../utils/passwordValidation";
 
 /**
- * Reusable PasswordStrengthField component
- * Used in SignUp and ChangePassword components
- * Displays password input with strength meter and requirements checklist
- * 
  * @param {string} value - Password value
- * @param {function} onChange - Callback when password changes (receives event)
+ * @param {function} onChange - Callback when password changes
  * @param {string} placeholder - Placeholder text
  * @param {boolean} required - Whether the field is required
  * @param {boolean} showStrengthMeter - Whether to show strength meter

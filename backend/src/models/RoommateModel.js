@@ -127,30 +127,6 @@ export const RoommateModel = {
     );
   },
 
-  // findPendingFeedbackForUser: async (userId) => {
-  //   const relationships = await prisma.roommateRelationship.findMany({
-  //     where: {
-  //       status: "Ended",
-  //       OR: [{ seekerId: userId }, { providerId: userId }],
-  //       feedback: {
-  //         none: {
-  //           reviewerId: userId,
-  //         },
-  //       },
-  //     },
-  //     include: {
-  //       seeker: { select: userSelect },
-  //       provider: { select: userSelect },
-  //       dorm: { select: dormSelect },
-  //     },
-  //     orderBy: { endedAt: "desc" },
-  //   });
-
-  //   return relationships.map((relationship) =>
-  //     formatRelationshipForUser(relationship, userId),
-  //   );
-  // },
-
   findActiveRelationshipForUser: async (userId) => {
     return prisma.roommateRelationship.findFirst({
       where: {
@@ -244,8 +220,19 @@ export const RoommateModel = {
         throw new Error("ACTIVE_ROOMMATE_EXISTS");
       }
 
-      const relationship = await tx.roommateRelationship.create({
-        data: {
+      const relationship = await tx.roommateRelationship.upsert({
+        where: {
+          seekerId_providerId_dormId: {
+            seekerId: request.senderId,
+            providerId: request.recipientId,
+            dormId: request.dormId,
+          },
+        },
+        update: {
+          status: "Active",
+          endedAt: null,
+        },
+        create: {
           seekerId: request.senderId,
           providerId: request.recipientId,
           dormId: request.dormId,
@@ -281,6 +268,15 @@ export const RoommateModel = {
       });
 
       return formatRelationshipForUser(relationship, currentUserId);
+    });
+  },
+  findPendingRequestForDorm: async (senderId, dormId) => {
+    return prisma.roommateRequest.findFirst({
+      where: {
+        senderId,
+        dormId,
+        status: "Pending",
+      },
     });
   },
 
@@ -374,50 +370,4 @@ export const RoommateModel = {
       return formatRelationshipForUser(updatedRelationship, currentUserId);
     });
   },
-
-  // createFeedback: async (relationshipId, reviewerId, data) => {
-  //   const relationship = await prisma.roommateRelationship.findUnique({
-  //     where: { id: relationshipId },
-  //   });
-
-  //   if (!relationship) {
-  //     throw new Error("RELATIONSHIP_NOT_FOUND");
-  //   }
-
-  //   if (
-  //     relationship.seekerId !== reviewerId &&
-  //     relationship.providerId !== reviewerId
-  //   ) {
-  //     throw new Error("NOT_RELATIONSHIP_MEMBER");
-  //   }
-
-  //   const roommateId =
-  //     relationship.seekerId === reviewerId
-  //       ? relationship.providerId
-  //       : relationship.seekerId;
-
-  //   return prisma.roommateFeedback.upsert({
-  //     where: {
-  //       relationshipId_reviewerId: {
-  //         relationshipId,
-  //         reviewerId,
-  //       },
-  //     },
-  //     update: {
-  //       rating: data.rating,
-  //       endReason: data.endReason,
-  //       conflictType: data.conflictType || null,
-  //       importantFactor: data.importantFactor,
-  //     },
-  //     create: {
-  //       relationshipId,
-  //       reviewerId,
-  //       roommateId,
-  //       rating: data.rating,
-  //       endReason: data.endReason,
-  //       conflictType: data.conflictType || null,
-  //       importantFactor: data.importantFactor,
-  //     },
-  //   });
-  // },
 };

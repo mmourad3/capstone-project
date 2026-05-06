@@ -19,7 +19,6 @@ import { useAuth } from "../contexts/AuthContext";
 
 
 export default function CarpoolDashboard() {
-  // Role protection hook - blocks non-carpool users
   useRoleProtection('carpool');
   
   const { user } = useAuth();
@@ -172,7 +171,7 @@ const handleRemovePassenger = async (carpoolId, passengerId) => {
   }
 };
 
-  // Filter available rides - SIMPLIFIED (like dorm seeker dashboard)
+  // Filter available rides
   const getAvailableRides = () => {
     let filteredRides = allCarpools.filter(carpool => {
       // Exclude user's own listings (use driverId, not email)
@@ -196,7 +195,7 @@ const handleRemovePassenger = async (carpoolId, passengerId) => {
         return false;
       }
       
-      // SCHEDULE-BASED FILTERING: ALL carpool days must match passenger's schedule
+      // ALL carpool days must match passenger's schedule
       if (!isCarpoolScheduleCompatible(carpool, userClassSchedule)) {
         return false;
       }
@@ -216,16 +215,12 @@ const handleRemovePassenger = async (carpoolId, passengerId) => {
         }
       }
 
-      // Apply gender filter (filter by carpool's gender preference setting)
       if (genderFilter === 'same') {
         // User wants to see only "same gender" carpools
         if (carpool.genderPreference !== 'same') {
           return false;
         }
-      }
-      // If genderFilter === 'both', show all carpools (no filtering)
-      
-      // Apply carpool's gender preference setting (driver's requirement)
+      }      
       if (carpool.genderPreference === 'same' && userGender && carpool.driverGender) {
         // If driver wants same gender only, check if passenger matches
         if (carpool.driverGender.toLowerCase() !== userGender.toLowerCase()) {
@@ -293,8 +288,6 @@ const handleRemovePassenger = async (carpoolId, passengerId) => {
       
       await carpoolAPI.create(newCarpool);
       toast.success("Carpool listing created successfully!");
-      
-      // Reload carpools
       await loadCarpools();
       
       setShowCreateForm(false);
@@ -324,7 +317,7 @@ const handleRemovePassenger = async (carpoolId, passengerId) => {
     );
     
     if (!confirmed) {
-      return; // User cancelled the deletion
+      return;
     }
     
     try {

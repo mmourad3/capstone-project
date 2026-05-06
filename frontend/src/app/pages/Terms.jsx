@@ -15,7 +15,7 @@ export default function Terms() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Check if user came from signup page - use sessionStorage to persist across re-renders
+  // Check if user came from signup page
   const from = location.state?.from || sessionStorage.getItem('termsFrom');
   const formData = location.state?.formData || JSON.parse(sessionStorage.getItem('termsFormData') || 'null');
 
@@ -47,10 +47,8 @@ export default function Terms() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
-      {/* Conditional Navigation: Only show Navbar if NOT from signup */}
       {from !== 'signup' && <Navbar />}
 
-      {/* Back Button - Always visible */}
       <div className="absolute top-4 sm:top-8 left-4 sm:left-8 z-20">
         <Link
           to="#"

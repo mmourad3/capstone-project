@@ -55,10 +55,8 @@ useEffect(() => {
 if (!selectedListing) return null;
 
 
-  // Use custom close handler if provided, otherwise use setSelectedListing(null)
   const closeModal = handleCloseListing || (() => setSelectedListing(null));
 
-  // Calculate display gender based on provider's preference
   const displayGender = getGenderDisplayText(selectedListing.genderPreference, selectedListing.posterGender);
 
   return (
@@ -276,7 +274,6 @@ if (!selectedListing) return null;
               </div>
             </div>
 
-            {/* Action buttons - stacked on mobile, side by side on desktop */}
             <div className="flex flex-col sm:flex-row gap-3">
               {/* Left column - Request button + warning text */}
               <div className="w-full">

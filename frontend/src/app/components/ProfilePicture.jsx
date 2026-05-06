@@ -1,9 +1,5 @@
 import { User } from "lucide-react";
 
-/**
- * Reusable ProfilePicture component
- * Displays user profile picture or default "no picture" avatar
- */
 export function ProfilePicture({ 
   src, 
   alt = "User", 

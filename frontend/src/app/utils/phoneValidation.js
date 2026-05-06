@@ -1,8 +1,3 @@
-/**
- * Phone number validation utilities
- * Shared across Profile.jsx and SignUp.jsx
- */
-
 import { getAvailableCountries } from '../config/appConfig';
 
 /**

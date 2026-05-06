@@ -1,20 +1,6 @@
-/**
- * University Email Validation & Universities Configuration
- * 
- * Centralized configuration for:
- * - Allowed university email domains
- * - Lebanese universities list
- * - Email-to-university mapping for validation
- */
-
 // ============================================================
 // ALLOWED EMAIL DOMAINS
 // ============================================================
-
-/**
- * List of allowed university email domains
- * Used for validating student emails during signup
- */
 export const ALLOWED_EMAIL_DOMAINS = [
   // Lebanese Universities - General
   '.edu.lb',              // All Lebanese universities with .edu.lb
@@ -40,15 +26,6 @@ export const ALLOWED_EMAIL_DOMAINS = [
   '@usek.edu.lb',         // Holy Spirit University of Kaslik (USEK)
   '@ua.edu.lb',           // Antonine University (UA)
   '@aul.edu.lb',          // Arts, Sciences and Technology University (AUL)
-
-  // // International universities (optional - remove if you want Lebanon-only)
-  // '.edu',        // US universities
-  // '.ac.uk',      // UK universities
-  // '.edu.au',     // Australian universities
-  // '.ac.nz',      // New Zealand universities
-  // '.edu.sg',     // Singapore universities
-  // '.ac.in',      // Indian universities
-  // '.edu.pk',     // Pakistani universities
 ];
 
 // ============================================================

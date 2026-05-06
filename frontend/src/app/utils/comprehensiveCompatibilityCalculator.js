@@ -1,5 +1,3 @@
-//DELETE WHEN IMPLEMENTING AI
-
 /**
  * Comprehensive Compatibility Calculator for Roommate Matching
  */
@@ -33,30 +31,29 @@ const getLevel = (field, value) => value ? FIELD_LEVELS[field]?.[value] || 0 : 0
 
 const getPointsFromDiff = (maxPoints, diff) => {
   if (diff === 0) return maxPoints;
-  if (diff === 1) return Math.round(maxPoints * 0.90); // More generous: 80% → 90%
-  if (diff === 2) return Math.round(maxPoints * 0.70); // More generous: 50% → 70%
-  return Math.round(maxPoints * 0.40); // More generous: 20% → 40%
+  if (diff === 1) return Math.round(maxPoints * 0.90);
+  if (diff === 2) return Math.round(maxPoints * 0.70);
+  return Math.round(maxPoints * 0.40);
 };
 
 const parseTimeToHour = (timeStr) => {
   if (!timeStr || typeof timeStr !== 'string') return null;
   
-  // Sleep times (handle midnight wraparound)
-  if (timeStr === 'Before 10 PM') return 21;  // ~9 PM
+  // Sleep times
+  if (timeStr === 'Before 10 PM') return 21; 
   if (timeStr === '10-11 PM') return 22;
   if (timeStr === '11 PM-12 AM') return 23;
-  if (timeStr === '12-1 AM') return 24;  // Midnight, treat as 24 to keep sequential
-  if (timeStr === '1-2 AM') return 25;   // 1 AM, offset by 24
-  if (timeStr === 'After 2 AM') return 26; // 2+ AM, offset by 24
+  if (timeStr === '12-1 AM') return 24; 
+  if (timeStr === '1-2 AM') return 25;  
+  if (timeStr === 'After 2 AM') return 26;
   
   // Wake times
-  if (timeStr === 'Before 6 AM') return 5;  // ~5 AM
+  if (timeStr === 'Before 6 AM') return 5; 
   if (timeStr === '6-7 AM') return 6;
   if (timeStr === '7-8 AM') return 7;
   if (timeStr === '8-9 AM') return 8;
   if (timeStr === '9-10 AM') return 9;
-  if (timeStr === 'After 10 AM') return 11; // ~11 AM
-  
+  if (timeStr === 'After 10 AM') return 11;    
   return null;
 };
 
@@ -239,7 +236,6 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
     );
     
     const matchRatio = matchedQualities.length / user1WantsQualities.length;
-    // Increased by 50%: 20 points → 30 points max
     qualitiesPoints = Math.round(matchRatio * 30);
     
     if (qualitiesPoints > 0) {
@@ -260,11 +256,11 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
   categoryScores.personalQualities = qualitiesPoints;
   baseScore += qualitiesPoints;
   
-  // ========================================
-  // CORE LIFESTYLE COMPATIBILITY (35 points)
-  // ========================================
+  // ============================
+  // CORE LIFESTYLE COMPATIBILITY
+  // ============================
   
-  // 1. Sleep Schedule (5 points)
+  // 1. Sleep Schedule
   let sleepPoints = 0;
   if (q1.sleepSchedule && q2.sleepSchedule) {
     const sleepDiff = Math.abs(getLevel('sleepSchedule', q1.sleepSchedule) - getLevel('sleepSchedule', q2.sleepSchedule));
@@ -296,8 +292,8 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
     sleepPoints = Math.round(sleepPoints * 1.5);
   }
   corePoints += sleepPoints;
-  
-  // 2. Wake/Sleep Time Alignment (4 points total: 2 for wake, 2 for sleep)
+    
+  // 2. Wake/Sleep Time Alignment
   let timePoints = 0;
   try {
     const wake1 = parseTimeToHour(q1.wakeUpTime);
@@ -309,7 +305,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
       const wakeDiff = Math.abs(wake1 - wake2);
       const sleepDiff = Math.abs(sleep1 - sleep2);
       
-      // Check wake times separately (2 points)
+      // Check wake times separately
       if (wakeDiff <= 1) {
         timePoints += 2;
         matchReasons.push({
@@ -332,7 +328,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
         });
       }
       
-      // Check sleep times separately (2 points)
+      // Check sleep times separately
       if (sleepDiff <= 1) {
         timePoints += 2;
         matchReasons.push({
@@ -356,11 +352,10 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
       }
     }
   } catch (e) {
-    // Skip time comparison if parsing fails
   }
   corePoints += timePoints;
   
-  // 3. Cleanliness (9 points)
+  // 3. Cleanliness
   corePoints += compareField('cleanliness', q1.cleanliness, q2.cleanliness, {
     maxPoints: 9,
     matchThreshold: 2,
@@ -372,7 +367,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
     severity: 'high'
   }, bonusFields, matchReasons, potentialConflicts);
   
-  // 4. Organization (7 points)
+  // 4. Organization
   corePoints += compareField('organizationLevel', q1.organizationLevel, q2.organizationLevel, {
     maxPoints: 7,
     matchThreshold: 1,
@@ -383,7 +378,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
     severity: 'medium'
   }, bonusFields, matchReasons, potentialConflicts);
   
-  // 5. Social Level (10 points)
+  // 5. Social Level
   corePoints += compareField('socialLevel', q1.socialLevel, q2.socialLevel, {
     maxPoints: 10,
     matchThreshold: 1,
@@ -397,11 +392,11 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
   categoryScores.coreLifestyle = corePoints;
   baseScore += corePoints;
   
-  // ========================================
-  // STUDY & ENVIRONMENT (20 points)
-  // ========================================
+  // ===================
+  // STUDY & ENVIRONMENT
+  // ===================
   
-  // 6. Study Time (3 points)
+  // 6. Study Time
   if (q1.studyTime && q2.studyTime && q1.studyTime === q2.studyTime) {
     studyPoints += 3;
     matchReasons.push({
@@ -411,7 +406,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
     });
   }
   
-  // 7. Noise Level (5 points)
+  // 7. Noise Level
   studyPoints += compareField('noiseLevel', q1.noiseLevel, q2.noiseLevel, {
     maxPoints: 5,
     matchThreshold: 1,
@@ -422,7 +417,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
     severity: 'high'
   }, bonusFields, matchReasons, potentialConflicts);
   
-  // 8. Music While Studying (2 points)
+  // 8. Music While Studying
   if (q1.musicWhileStudying && q2.musicWhileStudying && q1.musicWhileStudying === q2.musicWhileStudying) {
     studyPoints += 2;
     matchReasons.push({
@@ -432,7 +427,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
     });
   }
   
-  // 9. Guest Frequency (5 points)
+  // 9. Guest Frequency
   studyPoints += compareField('guestFrequency', q1.guestFrequency, q2.guestFrequency, {
     maxPoints: 5,
     matchThreshold: 1,
@@ -443,7 +438,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
     severity: 'high'
   }, bonusFields, matchReasons, potentialConflicts);
   
-  // 10. Temperature (4 points)
+  // 10. Temperature
   studyPoints += compareField('temperaturePreference', q1.temperaturePreference, q2.temperaturePreference, {
     maxPoints: 4,
     matchThreshold: 1,
@@ -454,7 +449,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
     severity: 'medium'
   }, bonusFields, matchReasons, potentialConflicts);
   
-  // 11. Shared Spaces (1 point)
+  // 11. Shared Spaces
   if (q1.sharedSpaces && q2.sharedSpaces && q1.sharedSpaces === q2.sharedSpaces) {
     studyPoints += 1;
     matchReasons.push({
@@ -467,11 +462,11 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
   categoryScores.studyEnvironment = studyPoints;
   baseScore += studyPoints;
   
-  // ========================================
-  // HEALTH & LIFESTYLE (10 points)
-  // ========================================
+  // ==================
+  // HEALTH & LIFESTYLE
+  // ==================
   
-  // 12. Smoking (5 points) - Critical
+  // 12. Smoking
   if (q1.smoking && q2.smoking) {
     if (q1.smoking === q2.smoking) {
       healthPoints += 5;
@@ -489,11 +484,11 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
     }
     
     if (bonusFields.has('smoking')) {
-      healthPoints += 2; // Flat bonus instead of multiplier
+      healthPoints += 2;
     }
   }
   
-  // 13. Drinking (2 points)
+  // 13. Drinking
   if (q1.drinking && q2.drinking && q1.drinking === q2.drinking) {
     healthPoints += 2;
     matchReasons.push({
@@ -503,7 +498,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
     });
   }
   
-  // 14. Pets (3 points)
+  // 14. Pets
   if (q1.pets && q2.pets) {
     // Normalize pet values for comparison
     const hasPets1 = q1.pets.includes('Have Pets') || q1.pets === 'Yes';
@@ -513,7 +508,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
     const noPets1 = q1.pets.includes('Prefer None') || q1.pets === 'No';
     const noPets2 = q2.pets.includes('Prefer None') || q2.pets === 'No';
     
-    // Full compatibility scenarios (3 points)
+    // Full compatibility scenarios
     if (q1.pets === q2.pets) {
       // Exact match
       healthPoints += 3;
@@ -524,7 +519,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
       });
     }
     else if ((hasPets1 && openToPets2) || (hasPets2 && openToPets1)) {
-      // One has pets, other is open to them - fully compatible!
+      // One has pets, other is open to them - fully compatible
       healthPoints += 3;
       matchReasons.push({
         category: 'Pets',
@@ -533,7 +528,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
       });
     }
     else if ((openToPets1 && openToPets2)) {
-      // Both open to pets - fully compatible!
+      // Both open to pets - fully compatible
       healthPoints += 3;
       matchReasons.push({
         category: 'Pets',
@@ -541,7 +536,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
         points: 3
       });
     }
-    // Partial compatibility scenarios (1 point)
+    // Partial compatibility scenarios
     else if ((noPets1 && openToPets2) || (noPets2 && openToPets1)) {
       healthPoints += 1;
       matchReasons.push({
@@ -550,7 +545,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
         points: 1
       });
     }
-    // Conflict scenarios (0 points)
+    // Conflict scenarios
     else if ((hasPets1 && noPets2) || (hasPets2 && noPets1)) {
       potentialConflicts.push({
         category: 'Pets',
@@ -574,17 +569,16 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
   categoryScores.healthLifestyle = healthPoints;
   baseScore += healthPoints;
   
-  // ========================================
-  // PERSONAL CONNECTION (10 points)
-  // ========================================
+  // ===================
+  // PERSONAL CONNECTION
+  // ===================
   
-  // 15. Shared Interests (up to 15 points - increased from 10)
+  // 15. Shared Interests
   const interests1 = parseArray(q1.interests);
   const interests2 = parseArray(q2.interests);
   const sharedInterests = interests1.filter(interest => interests2.includes(interest));
   
   let interestPoints = 0;
-  // Increased scoring: ~5 points per shared interest
   if (sharedInterests.length >= 3) {
     interestPoints = 15;
     matchReasons.push({
@@ -626,12 +620,10 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
       detail: violation.detail,
       severity: 'critical'
     });
-    
-    // REDUCED PENALTY: Deduct 10 points per deal breaker violation (was 15)
-    baseScore -= 10;
+      baseScore -= 10;
   });
   
-  // Apply +10 bonus if user1 has deal breakers and user2 doesn't violate any (was +5)
+  // Apply +10 bonus if user1 has deal breakers and user2 doesn't violate any
   const dealBreakers1 = parseArray(q1.dealBreakers);
   if (dealBreakers1.length > 0 && dealBreakerViolations.length === 0) {
     baseScore += 10;
@@ -671,7 +663,7 @@ export const calculateCompatibility = (user1Questionnaire, user2Questionnaire) =
       return severityOrder[a.severity] - severityOrder[b.severity];
     }),
     dealBreakerViolations: dealBreakerViolations,
-    reverseDealBreakerViolations: reverseDealBreakerViolations, // NEW: User 1 meets User 2's deal breakers
+    reverseDealBreakerViolations: reverseDealBreakerViolations,
     categoryScores
   };
 };

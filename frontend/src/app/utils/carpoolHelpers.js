@@ -1,10 +1,3 @@
-/**
- * CARPOOL HELPER FUNCTIONS
- * Shared utilities for carpool operations across the application
- * Last updated: 2026-03-13
- */
-
-// Days of the week constant - can be used across the app
 export const DAYS_OF_WEEK = [
   { id: 'monday', label: 'Mon' },
   { id: 'tuesday', label: 'Tue' },
@@ -15,7 +8,7 @@ export const DAYS_OF_WEEK = [
   { id: 'sunday', label: 'Sun' }
 ];
 
-// Helper function to convert day names to abbreviations (matching signup format)
+// Helper function to convert day names to abbreviations
 export const getDayAbbreviation = (day) => {
   const dayLower = day.toLowerCase();
   const abbreviations = {
@@ -42,11 +35,6 @@ export const formatCarpoolLocation = (carpool) => {
   if (!carpool.pickupSpot || !carpool.destination) return '';
   return `${carpool.pickupSpot} → ${carpool.destination}`;
 };
-
-/**
- * LocalStorage Helper Functions
- */
-
 
 // Helper function to get return time from driver's schedule
 export const getReturnTime = (ride) => {
@@ -87,8 +75,8 @@ export const getReturnTime = (ride) => {
 
 
 /**
- * Check if carpool schedule is compatible with passenger schedule (TIMING VALIDATION)
- * Driver must depart BEFORE passenger's class starts and return AFTER class ends
+ * Check if carpool schedule is compatible with passenger schedule
+ * Driver must depart before passenger's class starts and return after class ends
  * @param {Object} carpool - Carpool object with driverSchedule, time, returnTime
  * @param {Array} passengerSchedule - Passenger's class schedule blocks
  * @returns {boolean} True if all carpool days are compatible with passenger schedule
@@ -128,10 +116,6 @@ export const isCarpoolScheduleCompatible = (carpool, passengerSchedule) => {
       if (!passengerStartTime || !passengerEndTime) {
         return false;
       }
-      
-      // CRITICAL TIMING RULES:
-      // 1. Carpool DEPARTS BEFORE passenger's class START time (driver picks up passenger before class)
-      // 2. Carpool RETURNS at or AFTER passenger's class END time (driver waits for passenger after class)
       return carpoolDepartTime < passengerStartTime && carpoolReturnTime >= passengerEndTime;
     });
   });

@@ -2,10 +2,6 @@ import React from 'react';
 import { Calendar, Clock, DollarSign, User, Info, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { getDayAbbreviation } from '../utils/carpoolHelpers';
 
-/**
- * Carpool Filters Component
- * Reusable filter panel for carpool search
- */
 export function CarpoolFilters({
   showFilters,
   setShowFilters,

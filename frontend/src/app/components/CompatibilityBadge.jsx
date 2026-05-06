@@ -1,7 +1,6 @@
 import { Sparkles } from 'lucide-react';
 import { getCompatibilityColor } from '../utils/comprehensiveCompatibilityCalculator';
 
-// Helper: Get color classes for compatibility badge
 const getCompatibilityColorClasses = (score) => {
   const colorMap = {
     green: "bg-green-100 text-green-800",

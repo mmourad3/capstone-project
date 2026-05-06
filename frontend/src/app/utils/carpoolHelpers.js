@@ -166,6 +166,7 @@ export const timeToMinutes = (timeStr) => {
   return hours * 60 + minutes;
 };
 
+
 /**
  * Validate carpool times against schedule block
  * Ensures departure is before class starts and return is at or after class ends

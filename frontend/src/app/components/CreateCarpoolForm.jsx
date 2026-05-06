@@ -62,8 +62,8 @@ export function CreateCarpoolForm({
       selectedScheduleBlock: index,
       returnTime: block?.endTime || ""
     });
-    setDepartError(''); // Clear error when changing schedule
-    setReturnError(''); // Clear error when changing schedule
+    setDepartError(''); 
+    setReturnError(''); 
   };
 
   // Validate form before submission
@@ -88,7 +88,6 @@ export function CreateCarpoolForm({
       return;
     }
     
-    // Clear errors and proceed with submission
     setDepartError('');
     setReturnError('');
     onSubmit(e);

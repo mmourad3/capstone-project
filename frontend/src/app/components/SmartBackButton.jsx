@@ -1,6 +1,7 @@
 import { useNavigate, useSearchParams } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
 import { getDashboardPath } from '../utils/navigationHelpers';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Smart back button that knows whether to return to dashboard or profile with modal
@@ -8,17 +9,15 @@ import { getDashboardPath } from '../utils/navigationHelpers';
 export function SmartBackButton({ className = '', label = 'Back', onGoBack = null, from = null }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  
+  const { user } = useAuth();
   const handleBack = () => {
-    // If custom onGoBack is provided, use it
     if (onGoBack) {
       onGoBack();
       return;
     }
     
-    // Fallback to old behavior
     const dormId = searchParams.get('dormId');
-    const userRole = localStorage.getItem('userRole');
+    const userRole = user?.role;
     const dashboardPath = getDashboardPath(userRole);
     
     if (dormId) {

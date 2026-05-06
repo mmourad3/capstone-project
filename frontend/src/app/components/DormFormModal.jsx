@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { X, Check, AlertCircle, CheckCircle } from 'lucide-react';
 import { LocationPicker } from './LocationPicker';
 import { ImageUpload } from './ImageUpload';
@@ -22,6 +22,7 @@ export function DormFormModal({
   const descriptionRef = useRef(null);
   const amenitiesRef = useRef(null);
   const imagesRef = useRef(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAmenityToggle = (amenityId) => {
     const updatedAmenities = formData.amenities.includes(amenityId)
@@ -30,9 +31,9 @@ export function DormFormModal({
     setFormData({ ...formData, amenities: updatedAmenities });
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    
+    if (isSubmitting) return;
     // Validate that title is provided
     if (!formData.title) {
       titleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -75,8 +76,13 @@ export function DormFormModal({
       return;
     }
     
-    // Call parent's onSubmit
-    onSubmit(e);
+    setIsSubmitting(true);
+
+    try {
+      await onSubmit(e);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -90,6 +96,7 @@ export function DormFormModal({
           </h2>
           <button
             onClick={onClose}
+            disabled={isSubmitting}
             className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer"
           >
             <X className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -155,7 +162,6 @@ export function DormFormModal({
                 value={formData.price}
                 onChange={(e) => {
                   const value = e.target.value;
-                  // Only allow $, numbers, and decimal point
                   if (value === "" || /^[\$]?[0-9]*\.?[0-9]*$/.test(value)) {
                     setFormData({ ...formData, price: value });
                   }
@@ -288,13 +294,21 @@ export function DormFormModal({
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
             <button
               type="submit"
-              className="flex-1 bg-blue-500 dark:bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors font-medium text-sm sm:text-base cursor-pointer"
+              disabled={isSubmitting}
+              className="flex-1 bg-blue-500 dark:bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors font-medium text-sm sm:text-base cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
-              {editingDorm ? "Update Listing" : "Post Listing"}
+              {isSubmitting
+                ? editingDorm
+                  ? "Updating..."
+                  : "Posting..."
+                : editingDorm
+                  ? "Update Listing"
+                  : "Post Listing"}
             </button>
             <button
               type="button"
               onClick={onClose}
+              disabled={isSubmitting}
               className="flex-1 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 py-2.5 sm:py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors font-medium text-sm sm:text-base cursor-pointer"
             >
               Cancel

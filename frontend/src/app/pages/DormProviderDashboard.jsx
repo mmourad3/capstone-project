@@ -9,11 +9,10 @@ import { useRoleProtection } from "../hooks/useRoleProtection";
 import { useUserData } from "../hooks/useUserData";
 import { availableAmenities } from "../constants/amenities";
 import { dormAPI } from "../services/api";
+import { uploadDormImages, deleteRemovedDormImages } from "../utils/uploadDormImages";
 
 export default function DormProviderDashboard() {  
   useRoleProtection('dorm_provider');
-  
-  // Get user data from centralized hook
   const userData = useUserData();
   const { userName, userId } = userData;
   
@@ -38,12 +37,7 @@ export default function DormProviderDashboard() {
   
   // Check if user has a "Found Roommate" listing
   const hasFoundRoommate = postedDorms.some(dorm => dorm.status === 'Found Roommate');
-
-  
-  // LOCATION COUNTRY: Always use Lebanon (LB) for location searches
-  // This is separate from phone number country - students can have international phone numbers
-  // but all dorms/listings must be in Lebanon
-  const locationCountryISO = 'LB'; // Force Lebanon for all location searches
+  const locationCountryISO = 'LB';
   const locationCountryName = 'Lebanon';
 
   useEffect(() => {
@@ -60,70 +54,87 @@ export default function DormProviderDashboard() {
   }, []);
 
   const handleSubmit = async (e) => {
-e.preventDefault();
+    e.preventDefault();
 
-const dormPayload = {
-  title: formData.title,
-  location: formData.location,
-  latitude: formData.latitude,
-  longitude: formData.longitude,
-  price: String(formData.price),
-  roomType: formData.roomType === "single" ? "Single Room" : "Shared Room",
-  genderPreference: formData.genderPreference,
-  description: formData.description,
-  amenities: formData.amenities,
-  images: formData.images,
-};
+    const folderId = editingDorm?.id || crypto.randomUUID();
 
-try {
-  if (editingDorm) {
-    const response = await dormAPI.update(editingDorm.id, dormPayload);
-
-    setPostedDorms((prev) =>
-      prev.map((dorm) => (dorm.id === editingDorm.id ? response.dorm : dorm)),
+    const uploadedImageUrls = await uploadDormImages(
+      formData.images,
+      userId,
+      folderId,
     );
 
-    setEditingDorm(null);
+    const dormPayload = {
+      title: formData.title,
+      location: formData.location,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+      price: String(formData.price),
+      roomType: formData.roomType === "single" ? "Single Room" : "Shared Room",
+      genderPreference: formData.genderPreference,
+      description: formData.description,
+      amenities: formData.amenities,
+      images: uploadedImageUrls,
+    };
 
-    toast.success("Dorm listing updated successfully!", {
-      position: "top-right",
-      autoClose: 3000,
-    });
-  } else {
-    const activeDorms = postedDorms.filter((dorm) => dorm.status === "Active");
+    try {
+      if (editingDorm) {
+        const response = await dormAPI.update(editingDorm.id, dormPayload);
 
-    for (const dorm of activeDorms) {
-      await dormAPI.update(dorm.id, { status: "Inactive" });
-    }
+        await deleteRemovedDormImages(
+          editingDorm.images || [],
+          uploadedImageUrls,
+        );
 
-  window.dispatchEvent(new Event("roommateDataChanged"));
-    const response = await dormAPI.create({
-      ...dormPayload,
-      status: "Active",
-    });
+        setPostedDorms((prev) =>
+          prev.map((dorm) =>
+            dorm.id === editingDorm.id ? response.dorm : dorm,
+          ),
+        );
 
-    setPostedDorms((prev) => [
-      response.dorm,
-      ...prev.map((dorm) =>
-        dorm.status === "Active" ? { ...dorm, status: "Inactive" } : dorm,
-      ),
-    ]);
+        setEditingDorm(null);
 
-    toast.success("Dorm posted successfully! Your listing is now active.", {
-      position: "top-right",
-      autoClose: 3000,
-    });
-
-    if (postedDorms.length > 0) {
-      toast.info(
-        "Previous listings have been marked as inactive since you can only have one active dorm at a time.",
-        {
+        toast.success("Dorm listing updated successfully!", {
           position: "top-right",
-          autoClose: 5000,
-        },
-      );
-    }
-  }
+          autoClose: 3000,
+        });
+      } else {
+        const activeDorms = postedDorms.filter(
+          (dorm) => dorm.status === "Active",
+        );
+
+        for (const dorm of activeDorms) {
+          await dormAPI.update(dorm.id, { status: "Inactive" });
+        }
+
+        window.dispatchEvent(new Event("roommateDataChanged"));
+        const response = await dormAPI.create({
+          ...dormPayload,
+          status: "Active",
+        });
+
+        setPostedDorms((prev) => [
+          response.dorm,
+          ...prev.map((dorm) =>
+            dorm.status === "Active" ? { ...dorm, status: "Inactive" } : dorm,
+          ),
+        ]);
+
+        toast.success("Dorm posted successfully! Your listing is now active.", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+
+        if (postedDorms.length > 0) {
+          toast.info(
+            "Previous listings have been marked as inactive since you can only have one active dorm at a time.",
+            {
+              position: "top-right",
+              autoClose: 5000,
+            },
+          );
+        }
+      }
 
   setShowCreateForm(false);
   setFormData({
@@ -176,6 +187,7 @@ if (dormToDelete && dormToDelete.status === "Found Roommate") {
 
 if (confirm("Are you sure you want to delete this listing?")) {
   try {
+    await deleteRemovedDormImages(dormToDelete.images || [], []);
     await dormAPI.delete(id);
 
     setPostedDorms((prev) => prev.filter((dorm) => dorm.id !== id));

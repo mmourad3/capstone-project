@@ -2,10 +2,6 @@ import { Calendar, Clock, Info } from "lucide-react";
 import { DAYS_OF_WEEK } from "../../utils/carpoolHelpers";
 
 /**
- * Reusable ClassScheduleBuilder component
- * Used in SignUp for creating initial schedule (inline/compact mode)
- * Different from ClassScheduleSection which is used in Profile for editing (full card mode)
- * 
  * @param {Array} schedule - Array of schedule blocks
  * @param {Object} scheduleHelpers - Object containing helper functions
  * @param {boolean} required - Whether at least one schedule is required

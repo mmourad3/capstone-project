@@ -1,19 +1,22 @@
 import { Calendar, Clock, MapPin, Save } from "lucide-react";
 import { toast } from "react-toastify";
 import { DAYS_OF_WEEK } from "../../utils/carpoolHelpers";
+import { authAPI } from "../../services/api";
 
 export function ClassScheduleSection({ 
-  classSchedule, 
+  classSchedule,
+  setClassSchedule,
   carpoolRegion, 
   isEditingSchedule, 
   setIsEditingSchedule, 
   editedSchedule, 
   setEditedSchedule,
-  scheduleHelpers 
+  scheduleHelpers,
+  updateUser
 }) {
   const { addScheduleBlock, removeScheduleBlock, toggleDayInBlock, updateBlockTime, isDayUsedElsewhere } = scheduleHelpers;
 
-  const handleSaveSchedule = () => {
+  const handleSaveSchedule = async () => {
     // Validate class schedule
     if (editedSchedule.length === 0) {
       toast.error('Please add at least one schedule block');
@@ -33,18 +36,28 @@ export function ClassScheduleSection({
       }
     }
 
-    // Save to localStorage
-    localStorage.setItem('classSchedule', JSON.stringify(editedSchedule));
+    try {
+      const result = await authAPI.updateSchedule(editedSchedule);
 
-    // Trigger custom event for other components
-    window.dispatchEvent(new Event('classScheduleUpdated'));
-    
-    setIsEditingSchedule(false);
-    toast.success('Class schedule updated successfully!');
+      const updatedSchedule = result.classSchedule || [];
+
+      setClassSchedule(updatedSchedule);
+      setEditedSchedule(updatedSchedule);
+      updateUser({ classSchedule: updatedSchedule });
+
+      localStorage.setItem("classSchedule", JSON.stringify(updatedSchedule));
+      window.dispatchEvent(new Event("userDataUpdated"));
+      window.dispatchEvent(new Event("scheduleUpdated"));
+
+      setIsEditingSchedule(false);
+      toast.success("Class schedule updated successfully!");
+    } catch (error) {
+      toast.error(error.message || "Failed to update schedule");
+    }
   };
 
   const handleCancelScheduleEdit = () => {
-    setEditedSchedule([...classSchedule]);
+    setEditedSchedule(JSON.parse(JSON.stringify(classSchedule)));
     setIsEditingSchedule(false);
   };
 
@@ -58,7 +71,7 @@ export function ClassScheduleSection({
         {!isEditingSchedule && (
           <button
             onClick={() => {
-              setEditedSchedule([...classSchedule]);
+              setEditedSchedule(JSON.parse(JSON.stringify(classSchedule)));
               setIsEditingSchedule(true);
             }}
             className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs sm:text-sm font-medium flex items-center gap-2 cursor-pointer self-start sm:self-auto"

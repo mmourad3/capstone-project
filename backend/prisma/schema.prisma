@@ -28,8 +28,6 @@ model User {
   profilePicture    String?
   region            String? // For carpool users
 
-  // resetToken        String?
-  // resetTokenExpiry  DateTime?
   favoriteDorms FavoriteDorm[]
   
   createdAt         DateTime  @default(now())
@@ -46,11 +44,7 @@ model User {
 
   roommateAsSeeker         RoommateRelationship[] @relation("RoommateSeeker")
   roommateAsProvider       RoommateRelationship[] @relation("RoommateProvider")
-
-  roommateFeedbackGiven    RoommateFeedback[] @relation("RoommateFeedbackReviewer")
-  roommateFeedbackReceived RoommateFeedback[] @relation("RoommateFeedbackRoommate")
     
-  
   carpoolListings   CarpoolListing[]
   carpoolPassengers CarpoolPassenger[]
   
@@ -215,7 +209,6 @@ model RoommateRequest {
   status      RoommateRequestStatus @default(Pending)
   createdAt   DateTime @default(now())
 
-  @@unique([senderId, dormId])
   @@index([senderId])
   @@index([recipientId])
   @@index([dormId])
@@ -240,37 +233,13 @@ model RoommateRelationship {
   startedAt   DateTime @default(now())
   endedAt     DateTime?
 
-  feedback    RoommateFeedback[]
+  // feedback    RoommateFeedback[]
 
   @@index([seekerId])
   @@index([providerId])
   @@index([dormId])
   @@index([status])
-}
-
-model RoommateFeedback {
-  id              String   @id @default(uuid())
-
-  relationshipId  String
-  relationship    RoommateRelationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
-
-  reviewerId      String
-  reviewer        User     @relation("RoommateFeedbackReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
-
-  roommateId      String
-  roommate        User     @relation("RoommateFeedbackRoommate", fields: [roommateId], references: [id], onDelete: Cascade)
-
-  rating          Int
-  endReason       String
-  conflictType    String?
-  importantFactor String
-
-  createdAt       DateTime @default(now())
-
-  @@unique([relationshipId, reviewerId])
-  @@index([relationshipId])
-  @@index([reviewerId])
-  @@index([roommateId])
+  @@unique([seekerId, providerId, dormId])
 }
 
 // ========================================
@@ -292,7 +261,7 @@ model CarpoolListing {
   time           String
   returnTime     String
 
-  driverSchedule String   @db.Text // JSON array with ONE selected schedule block
+  driverSchedule String   @db.Text 
 
   seats          Int      @default(0)
   totalSeats     Int

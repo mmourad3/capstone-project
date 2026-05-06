@@ -1,36 +1,3 @@
-/**
- * UniMate Application Configuration
- * 
- * Centralized configuration for managing country availability,
- * feature flags, and other app-wide settings.
- */
-
-// ============================================================
-// COUNTRY AVAILABILITY CONFIGURATION
-// ============================================================
-
-/**
- * Set to true to enable multi-country LOCATION support
- * Set to false to restrict LOCATIONS to Lebanon only
- * 
- * IMPORTANT: This only controls WHERE dorms/listings can be located.
- * Students can still select ANY country for their phone number!
- * 
- * Example Use Case:
- * - Student from Saudi Arabia (+966) can attend Lebanese universities
- * - They select "Saudi Arabia" for phone validation
- * - But all dorm listings MUST be in Lebanon (LB)
- * 
- * When false:
- * - Location searches restricted to Lebanon only
- * - All dorm/carpool listings must be in Lebanon
- * - Phone numbers can be from any country
- * 
- * When true:
- * - Location searches respect listing's country
- * - Dorm/carpool listings can be in multiple countries
- * - Each listing tagged with its country
- */
 export const ENABLE_MULTI_COUNTRY = false;
 
 /**
@@ -72,8 +39,6 @@ export const AVAILABLE_COUNTRIES = [
  * @returns {Array} Array of country objects
  */
 export const getAvailableCountries = () => {
-  // ALWAYS return all countries for phone number selection
-  // International students can have phone numbers from any country
   return AVAILABLE_COUNTRIES;
 };
 
@@ -93,12 +58,12 @@ export const getLocationCountryISO = () => {
 
 /**
  * Get the user's country ISO code, defaulting to Lebanon if not set
- * @param {string} storedCountryCode - The country code from localStorage
+ * @param {string} storedCountryCode
  * @returns {string} 2-letter ISO country code
  */
 export const getUserCountryISO = (storedCountryCode) => {
   if (!ENABLE_MULTI_COUNTRY) {
-    return 'LB'; // Force Lebanon in Lebanon-only mode
+    return 'LB'; 
   }
   return storedCountryCode || DEFAULT_COUNTRY.iso;
 };
@@ -107,10 +72,6 @@ export const getUserCountryISO = (storedCountryCode) => {
 // LEBANESE REGIONS/CITIES CONFIGURATION
 // ============================================================
 
-/**
- * List of Lebanese regions/cities for carpool pickup locations
- * Organized by major regions
- */
 export const LEBANESE_REGIONS = [
   // Beirut
   { name: 'Beirut - Hamra', region: 'Beirut' },
@@ -160,9 +121,7 @@ export const LEBANESE_REGIONS = [
   { name: 'Anjar', region: 'Bekaa' },
 ];
 
-/**
- * Get grouped regions for display in dropdowns
- */
+
 export const getGroupedRegions = () => {
   const grouped = {};
   LEBANESE_REGIONS.forEach(location => {
@@ -174,30 +133,12 @@ export const getGroupedRegions = () => {
   return grouped;
 };
 
-// ============================================================
-// FEATURE FLAGS
-// ============================================================
-
-/**
- * Feature flags for toggling functionality
- */
 export const FEATURES = {
-  // Enable/disable AI compatibility matching
-  AI_COMPATIBILITY: true,
-  
-  // Enable/disable carpool feature
+  AI_COMPATIBILITY: true,  
   CARPOOL: true,
-  
-  // Enable/disable dorm provider feature
   DORM_PROVIDER: true,
-  
-  // Enable/disable dorm seeker feature
   DORM_SEEKER: true,
 };
-
-// ============================================================
-// APP METADATA
-// ============================================================
 
 export const APP_INFO = {
   name: 'UniMate',
@@ -206,18 +147,7 @@ export const APP_INFO = {
   supportEmail: 'support@unimate.edu.lb',
 };
 
-// ============================================================
-// API CONFIGURATION
-// ============================================================
-
-/**
- * Backend API URL
- * Note: Backend is currently disabled - app uses localStorage for all data
- */
 export const API_BASE_URL = 'http://localhost:5000';
 
-/**
- * API refresh interval for real-time updates (in milliseconds)
- * Default: 5000ms (5 seconds)
- */
+
 export const API_REFRESH_INTERVAL = 5000;

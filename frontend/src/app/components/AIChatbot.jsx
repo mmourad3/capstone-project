@@ -2,52 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 import { geminiChatAPI } from "../services/api";
 
-/**
- * AI Chatbot Component for UniMate
- * 
- * CURRENT STATE: Using mock responses for demonstration
- * 
- * TO INTEGRATE REAL AI (OpenAI, Anthropic, etc.):
- * 
- * 1. Install the AI SDK:
- *    npm install openai
- * 
- * 2. Create a backend API endpoint (in your Express server):
- *    POST /api/chat
- *    - Receives: { message: string, conversationHistory: array }
- *    - Returns: { response: string }
- * 
- * 3. Replace the generateBotResponse function with an API call:
- *    const response = await fetch('http://localhost:5000/api/chat', {
- *      method: 'POST',
- *      headers: { 'Content-Type': 'application/json' },
- *      body: JSON.stringify({
- *        message: inputMessage,
- *        conversationHistory: messages
- *      })
- *    });
- *    const data = await response.json();
- *    return data.response;
- * 
- * 4. Backend example (Express + OpenAI):
- *    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
- *    
- *    app.post('/api/chat', async (req, res) => {
- *      const { message, conversationHistory } = req.body;
- *      const completion = await openai.chat.completions.create({
- *        model: "gpt-4",
- *        messages: [
- *          { role: "system", content: "You are UniMate AI, helping students find roommates and carpools..." },
- *          ...conversationHistory.map(msg => ({
- *            role: msg.sender === 'user' ? 'user' : 'assistant',
- *            content: msg.text
- *          })),
- *          { role: "user", content: message }
- *        ]
- *      });
- *      res.json({ response: completion.choices[0].message.content });
- *    });
- */
 
 export function AIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -120,26 +74,6 @@ export function AIChatbot() {
     }
   };
 
-  // Mock AI responses - Replace with actual AI API call
-  const generateBotResponse = (userInput) => {
-    const input = userInput.toLowerCase();
-
-    if (input.includes('roommate') || input.includes('dorm')) {
-      return "I can help you find the perfect roommate! You can browse available dorm listings, filter by preferences like budget and location, and our AI compatibility system will match you with students who share similar lifestyles. Would you like me to guide you through the process?";
-    } else if (input.includes('carpool') || input.includes('ride')) {
-      return "Looking for a carpool? You can create your own carpool or join existing ones. Just specify your route, timing preferences, and connect with fellow students heading the same way. Need help getting started?";
-    } else if (input.includes('how') || input.includes('help')) {
-      return "I'm here to help! You can ask me about:\n• Finding roommates and dorm listings\n• Creating or joining carpools\n• Using the compatibility matching system\n• Managing your profile and preferences\n\nWhat would you like to know more about?";
-    } else if (input.includes('profile') || input.includes('account')) {
-      return "You can manage your profile from the Profile page. Update your personal information, lifestyle preferences, and contact details. This helps our AI match you with compatible roommates!";
-    } else if (input.includes('contact') || input.includes('whatsapp')) {
-      return "All student communication on UniMate happens through WhatsApp integration. When you find a potential roommate or carpool match, you can connect with them directly via WhatsApp.";
-    } else if (input.includes('compatibility') || input.includes('match')) {
-      return "Our AI compatibility system analyzes your lifestyle questionnaire responses including sleep schedule, cleanliness habits, noise preferences, and more. It calculates compatibility scores to help you find the best roommate matches!";
-    } else {
-      return "That's a great question! I'm here to help you navigate UniMate. You can ask me about finding roommates, carpools, using the platform features, or anything else related to student housing and ride sharing.";
-    }
-  };
 
   return (
     <>

@@ -28,10 +28,8 @@ export default function DormSeekerDashboard() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
-  // Role protection hook - blocks non-dorm_seeker users
+  // Role protection hook
   useRoleProtection('dorm_seeker');
-  
-  // Get user data from centralized hook
   const userData = useUserData();
   const { userName, userGender, userUniversity, userId, lifestyleAnswers } = userData;
   
@@ -53,10 +51,8 @@ export default function DormSeekerDashboard() {
   };
 
   const handleViewProviderProfile = (providerId, listingId = null) => {
-    // Get listing ID from parameter, or fallback to URL if not provided
     const finalListingId = listingId || searchParams.get('dorm');
     
-    // Build URL with context
     let url = `/profile/${providerId}?from=dashboard`;
     if (finalListingId) {
       url += `&dormId=${finalListingId}`;
@@ -76,7 +72,6 @@ const normalizeDormListing = (listing) => {
     ...listing,
     price: Number(listing.price) || 0,
 
-    // Backend poster object converted to old frontend field names
     posterId: listing.posterId,
     posterName,
     posterDisplayName: posterName,
@@ -85,8 +80,6 @@ const normalizeDormListing = (listing) => {
     whatsapp: poster.phone || "",
     posterGender: poster.gender || "",
     posterProfilePic: poster.profilePicture || "",
-
-    // Safety defaults
     amenities: Array.isArray(listing.amenities) ? listing.amenities : [],
     images: Array.isArray(listing.images) ? listing.images : [],
     genderPreference: listing.genderPreference || "any",
@@ -187,10 +180,6 @@ useEffect(() => {
 
   // Filter listings based on gender, search, price, etc.
   const filteredListings = dormListings.filter(listing => {
-    // AUTO-FILTER: Gender compatibility using helper function
-    // Provider's genderPreference ("same" or "any") determines who can see the listing
-    // If "same" → only show to seekers matching the provider's gender
-    // If "any" → show to all seekers
     const seekerUser = { gender: userGender || 'Male' };
     const providerGenderPref = listing.genderPreference || 'any';
     const providerGender = listing.posterGender;
@@ -199,9 +188,7 @@ useEffect(() => {
     const isGenderCompatible = matchesGenderPreference(seekerUser, providerGenderPref, providerGender);
     if (!isGenderCompatible) return false;
 
-    // Additional user preference filter ("Same Gender Only" option)
     if (genderFilter === "same-only") {
-      // Hide "any" preference listings, show only listings where provider chose "same"
       if (providerGenderPref !== 'same') return false;
     }
     // If "No Preference" is selected, show all listings that accept the user's gender (already filtered above)
@@ -250,10 +237,8 @@ useEffect(() => {
       case "compatibility":
         return (b.compatibilityScore || 0) - (a.compatibilityScore || 0);
       case "price-low":
-        // Price is now stored as a number
         return (a.price || 0) - (b.price || 0);
       case "price-high":
-        // Price is now stored as a number
         return (b.price || 0) - (a.price || 0);
       case "distance":
         if (a.distanceKm === null) return 1;
@@ -297,7 +282,6 @@ useEffect(() => {
     }
   };
 
-  // Load favorites from localStorage on mount
 useEffect(() => {
   const loadFavorites = async (showError = false) => {
     try {
@@ -417,8 +401,6 @@ useEffect(() => {
             />
           ))}
         </div>
-
-        {/* Saved Listings Section - REMOVED: Now available in Profile page */}
       </div>
 
       {/* Detail Modal */}

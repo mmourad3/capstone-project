@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router';
+import { useNavigate, Link, useLocation } from 'react-router';
 import { toast } from 'react-toastify';
 import { navigateToDashboard } from '../utils/navigationHelpers';
 import { questionnaireAPI } from "../services/api";
 import { ArrowLeft, CheckCircle, Moon, Sun, Home, Users, Coffee, BookOpen, Heart, Thermometer, Info, VolumeX, Volume1, Volume2, Gamepad2, Utensils, Plane, Music, Dumbbell, Palette, Camera, Film, Code, Flame, Snowflake } from 'lucide-react';
+import {useAuth} from "../contexts/AuthContext";
+
 
 const emptyQuestionnaire = {
   sleepSchedule: "",
@@ -32,16 +34,17 @@ const emptyQuestionnaire = {
 
 export default function LifestyleQuestionnaire() {
   const navigate = useNavigate();
-  const role = localStorage.getItem('userRole') || "dorm_seeker";
+  const { user } = useAuth();
+  const role = user?.role || "dorm_seeker";
   
-  // Redirect carpool users - questionnaire is ONLY for dorm seekers and providers
-  useEffect(() => {
-    const userRole = localStorage.getItem('userRole');
-    if (userRole === 'carpool') {
-      console.log('[LifestyleQuestionnaire] Carpool users do not need questionnaire, redirecting to dashboard');
-      navigateToDashboard(userRole, navigate);
-    }
-  }, [navigate]);
+useEffect(() => {
+  if (user?.role === "carpool") {
+    console.log(
+      "[LifestyleQuestionnaire] Carpool users do not need questionnaire, redirecting to dashboard",
+    );
+    navigateToDashboard(user.role, navigate);
+  }
+}, [user, navigate]);
   
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 6;
@@ -60,7 +63,6 @@ export default function LifestyleQuestionnaire() {
           ...existing,
         }));
       } catch (error) {
-        // 404 means the user has not completed the questionnaire yet
         console.log("No existing questionnaire found yet.");
       }
     };
@@ -100,15 +102,14 @@ export default function LifestyleQuestionnaire() {
     try {
       const result = await questionnaireAPI.save(formData);
 
-      localStorage.removeItem("signupFormData");
-
       const returnToProfile = localStorage.getItem("returnToProfile");
 
       if (returnToProfile === "true") {
         localStorage.removeItem("returnToProfile");
         toast.success("Lifestyle preferences updated successfully!");
         navigate("/profile");
-      } else {
+        return;
+      } 
         if (result.matchNotification?.matchCount > 0) {
           const count = result.matchNotification.matchCount;
           toast.success(
@@ -118,7 +119,7 @@ export default function LifestyleQuestionnaire() {
           toast.success("Questionnaire completed successfully!");
         }
         navigateToDashboard(role, navigate);
-      }
+      
     } catch (error) {
       toast.error(error.message || "Failed to save questionnaire");
     }
@@ -146,7 +147,7 @@ export default function LifestyleQuestionnaire() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 py-8 sm:py-12 px-4">
       <div className="max-w-3xl mx-auto">
-                  {/* Questionnaire Form */}
+        {/* Questionnaire Form */}
           <div>
         {/* Back to Home Button */}
         <div className="mb-4">

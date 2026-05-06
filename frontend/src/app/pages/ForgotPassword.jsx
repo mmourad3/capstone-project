@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { GraduationCap, MapPin, ArrowLeft, Mail, CheckCircle, AlertCircle } from "lucide-react";
 import { authAPI } from "../services/api";
+import { isValidUniversityEmail } from "../config/universityConfig";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -9,77 +10,25 @@ export default function ForgotPassword() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Validate university email format
-  const validateUniversityEmail = (emailValue) => {
-    const emailLower = emailValue.toLowerCase().trim();
-    
-    // List of allowed university email domains
-    const allowedDomains = [
-      // Lebanese Universities
-      '.edu.lb',              // All Lebanese universities with .edu.lb
-      '@aub.edu.lb',          // American University of Beirut (AUB)
-      '@lau.edu',             // Lebanese American University (LAU) - NO .lb suffix!
-      '@lau.edu.lb',          // LAU alternative domain (some staff/alumni)
-      '@usj.edu.lb',          // Université Saint-Joseph (USJ)
-      '@ul.edu.lb',           // Lebanese University
-      '@std.balamand.edu.lb', // University of Balamand
-      '@ndu.edu.lb',          // Notre Dame University - Louaize (NDU)
-      '@haigazian.edu.lb',    // Haigazian University
-      '@jinan.edu.lb',        // Jinan University
-      '@aust.edu.lb',         // American University of Science and Technology
-      '@bau.edu.lb',          // Beirut Arab University
-      '@liu.edu.lb',          // Lebanese International University
-      '@mubs.edu.lb',         // Modern University for Business and Science
-      '@rhu.edu.lb',          // Rafik Hariri University
-      '@gu.edu.lb',           // Global University
-      '@mu.edu.lb',           // Al Maaref University
-      '@arts.edu.lb',         // Lebanese Academy of Fine Arts (ALBA)
-      
-      // International universities (optional)
-      '.edu',        // US universities
-      '.ac.uk',      // UK universities  
-      '.edu.au',     // Australian universities
-      '.ac.nz',      // New Zealand universities
-      '.edu.sg',     // Singapore universities
-      '.ac.in',      // Indian universities
-      '.edu.pk',     // Pakistani universities
-    ];
-    
-    // Check if email ends with any allowed domain
-    return allowedDomains.some(domain => emailLower.endsWith(domain));
-  };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Clear previous errors
+    setError(""); 
     setIsLoading(true);
 
     // Validate university email
-    if (!validateUniversityEmail(email)) {
+    if (!isValidUniversityEmail(email)) {
       setError("Please use a valid university email address (.edu, .edu.lb, etc.)");
       setIsLoading(false);
       return;
     }
 
     try {
-      // Try API first
       await authAPI.forgotPassword(email.toLowerCase().trim());
-      
-      // Success - show confirmation message
       setIsSubmitted(true);
     } catch (err) {
-      console.log('ℹ️ Backend not available - using local demo mode');
-      
-      // FALLBACK: Use localStorage (for demo/development without backend)
-      const storedEmail = localStorage.getItem('userEmail');
-      
-      if (!storedEmail || email.toLowerCase().trim() !== storedEmail) {
-        setError("No account found with this email address. Please check your email or sign up.");
-        setIsLoading(false);
-        return;
-      }
-
-      // Email exists - show success message
+      console.log("Forgot password backend not available:", err);
       setIsSubmitted(true);
     } finally {
       setIsLoading(false);

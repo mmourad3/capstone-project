@@ -16,7 +16,6 @@ export function LocationPicker({ value, onChange, onAddressChange, countryCode =
   const [manualInput, setManualInput] = useState('');
   const [isDecodingPlusCode, setIsDecodingPlusCode] = useState(false);
 
-  // Track component mounted state to prevent state updates after unmount
   const [isMounted, setIsMounted] = useState(true);
 
   // Cleanup on unmount
@@ -26,7 +25,6 @@ export function LocationPicker({ value, onChange, onAddressChange, countryCode =
     };
   }, []);
 
-  // Update local state when initialAddress changes (for editing)
   useEffect(() => {
     if (initialAddress) {
       setAddress(initialAddress);
@@ -39,36 +37,28 @@ export function LocationPicker({ value, onChange, onAddressChange, countryCode =
     const delayDebounce = setTimeout(async () => {
       if (searchQuery.length >= 3) {
         try {
-          console.log('🔍 [LocationPicker] Searching for:', searchQuery, 'in country:', countryCode, countryName);
           const results = await searchPlaces(searchQuery, countryCode);
-          console.log('✅ [LocationPicker] Search results received:', results);
-          console.log('📊 [LocationPicker] Number of results:', results?.length);
           
           if (results && results.length > 0) {
-            console.log('✅ [LocationPicker] Setting suggestions and showing dropdown');
             setSuggestions(results);
             setShowSuggestions(true);
             setError(''); // Clear any previous errors
           } else {
-            console.log('❌ [LocationPicker] No results found for:', searchQuery);
             setSuggestions([]);
             setShowSuggestions(false);
-            // Don't show error - instead, allow manual entry
             setError('');
           }
         } catch (error) {
-          console.error('❌ [LocationPicker] Search error:', error);
           setSuggestions([]);
           setShowSuggestions(false);
           setError('');
         }
       } else {
-        console.log('⏳ [LocationPicker] Query too short:', searchQuery.length, 'characters');
         setSuggestions([]);
         setShowSuggestions(false);
         setError(''); // Clear error when user deletes search
       }
-    }, 500); // Debounce 500ms
+    }, 500);
 
     return () => clearTimeout(delayDebounce);
   }, [searchQuery, countryCode, countryName]);
@@ -87,7 +77,6 @@ export function LocationPicker({ value, onChange, onAddressChange, countryCode =
         setPosition({ lat: result.lat, lng: result.lng });
         onChange({ lat: result.lat, lng: result.lng });
         
-        // Use the user's typed address, not the geocoded one
         if (onAddressChange) {
           onAddressChange(searchQuery);
         }
@@ -96,8 +85,6 @@ export function LocationPicker({ value, onChange, onAddressChange, countryCode =
         setSuccess('Location found!');
         setTimeout(() => setSuccess(''), 3000);
       } else {
-        // Even if geocoding fails, allow the user to use the custom address
-        // They just won't have precise coordinates
         setError('Could not find exact coordinates. You can still use this custom address, or click "Use Current Location" to set coordinates.');
         if (onAddressChange) {
           onAddressChange(searchQuery);
@@ -125,39 +112,47 @@ export function LocationPicker({ value, onChange, onAddressChange, countryCode =
     setSuccess('');
     
     try {
-      console.log('📍 [LocationPicker] Requesting user location...');
       const coords = await getCurrentLocation();
-      console.log('✅ [LocationPicker] Got coordinates:', coords);
-      
-      // Reverse geocode to get address
-      const addressResult = await reverseGeocode(coords.lat, coords.lng);
-      console.log('📍 [LocationPicker] Reverse geocoded address:', addressResult);
-      
-      if (addressResult) {
-        setSearchQuery(addressResult);
-        setPosition({ lat: coords.lat, lng: coords.lng });
-        onChange({ lat: coords.lat, lng: coords.lng });
-        setAddress(addressResult);
-        if (onAddressChange) {
-          onAddressChange(addressResult);
-        }
-        setSuccess('Location detected successfully!');
-      } else {
-        setError('Could not determine your address. Please search manually.');
+      let addressResult = null;
+
+      try {
+        addressResult = await reverseGeocode(coords.lat, coords.lng);
+      } catch (error) {
+        console.warn(
+          "Reverse geocode failed, using coordinates instead:",
+          error,
+        );
       }
+
+      const finalAddress =
+        addressResult || `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
+      setPosition({ lat: coords.lat, lng: coords.lng });
+      onChange({ lat: coords.lat, lng: coords.lng });
+
+      setSearchQuery(finalAddress);
+      setAddress(finalAddress);
+
+      if (onAddressChange) {
+        onAddressChange(finalAddress);
+      }
+
+      setSuccess(
+        addressResult
+          ? "Location detected successfully!"
+          : "Location set using coordinates.",
+      );
     } catch (error) {
-      // More user-friendly error messages
       if (error.code === 1 || error.message?.includes('Permission denied')) {
-        console.warn('⚠️ [LocationPicker] Location permission denied by user');
+        console.warn('[LocationPicker] Location permission denied by user');
         setError('Location access blocked. Please enable location permissions in your browser settings, or search manually below.');
       } else if (error.code === 2) {
-        console.warn('⚠️ [LocationPicker] Position unavailable');
+        console.warn('[LocationPicker] Position unavailable');
         setError('Could not detect your location. Please check your device settings or search manually.');
       } else if (error.code === 3) {
-        console.warn('⚠️ [LocationPicker] Location request timeout');
+        console.warn('[LocationPicker] Location request timeout');
         setError('Location request timed out. Please try again or search manually.');
       } else {
-        console.warn('⚠️ [LocationPicker] Location error:', error.message || error);
+        console.warn('[LocationPicker] Location error:', error.message || error);
         setError('Could not get your location. Please search manually below.');
       }
     } finally {
@@ -186,12 +181,7 @@ export function LocationPicker({ value, onChange, onAddressChange, countryCode =
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      // Don't do anything - user should either select a suggestion or enter coordinates manually
     }
-  };
-
-  const handleUseCustomLocation = async () => {
-    // REMOVED - No more automatic geocoding guessing
   };
 
   const handleManualInput = () => {
@@ -203,7 +193,6 @@ export function LocationPicker({ value, onChange, onAddressChange, countryCode =
     
     // Check if user entered anything
     if (!manualInput.trim()) {
-      // Don't show toast error - just show inline message
       return;
     }
     
@@ -237,9 +226,7 @@ export function LocationPicker({ value, onChange, onAddressChange, countryCode =
         }
       }
     }
-    
-    // No valid input - don't show error, user will see validation on submit
-  };
+    };
 
   return (
     <div className="space-y-4">

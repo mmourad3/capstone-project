@@ -73,7 +73,7 @@ export default function SignUp() {
   const [carpoolRegion, setCarpoolRegion] = useState("");
   const [classSchedule, setClassSchedule] = useState([]);
 
-  // Schedule management helpers (imported from utils)
+  // Schedule management helpers
   const {
     addScheduleBlock,
     removeScheduleBlock,
@@ -101,7 +101,7 @@ export default function SignUp() {
     };
   };
 
-  // Validate university email format (using imported config)
+  // Validate university email format 
   const validateUniversityEmail = (emailValue) => {
     if (!emailValue) return false;
 
@@ -111,7 +111,6 @@ export default function SignUp() {
       setEmailError("Please use a valid university email address");
       return false;
     } else {
-      // Only clear error if it's NOT about email existence
       if (!emailExistsInDB) {
         setEmailError("");
       }
@@ -185,13 +184,11 @@ export default function SignUp() {
 
     const emailLower = email.toLowerCase().trim();
 
-    // Check if email matches any major university domain (using imported config)
+    // Check if email matches any major university domain 
     for (const [domain, expectedUniversity] of Object.entries(
       EMAIL_UNIVERSITY_MAP,
     )) {
       if (emailLower.endsWith(domain)) {
-        // For universities with multiple campuses, accept any campus variant
-        // e.g., "Lebanese American University (LAU) - Beirut" or "Lebanese American University (LAU) - Byblos"
         const isMatch =
           university === expectedUniversity ||
           university.startsWith(expectedUniversity);
@@ -205,7 +202,6 @@ export default function SignUp() {
       }
     }
 
-    // For all other emails (generic .edu.lb, international, etc.) - no validation needed
     setUniversityError("");
     return true;
   };
@@ -230,7 +226,7 @@ export default function SignUp() {
     }
   };
 
-  // Validate phone number (only numbers, spaces, hyphens, parentheses)
+  // Validate phone number
   const handlePhoneChange = (e) => {
     const value = e.target.value;
     // Allow only numbers and common phone symbols
@@ -301,7 +297,7 @@ export default function SignUp() {
 
     setProfilePicture(file);
 
-    // preview (THIS is what shows the image)
+    // preview
     const previewUrl = URL.createObjectURL(file);
     setProfilePicturePreview(previewUrl);
   };
@@ -315,7 +311,7 @@ export default function SignUp() {
     e.preventDefault();
     setApiError("");
 
-    // Run validations (email check already done in real-time!)
+    // Run validations
     const isEmailValidResult = validateUniversityEmail(email);
     const isUniversityValid = validateUniversityMatch();
     const isPhoneValidResult = validatePhoneNumber(phone);
@@ -332,7 +328,7 @@ export default function SignUp() {
       return;
     }
 
-    // Find the first error and scroll to it (instant - no async!)
+    // Find the first error and scroll to it
     if (!isEmailValidResult || emailExistsInDB) {
       emailRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -461,7 +457,6 @@ export default function SignUp() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
-            {/* First Name and Last Name in a grid */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label

@@ -1,9 +1,4 @@
 /**
- * Class schedule management utilities
- * Shared across Profile.jsx and SignUp.jsx
- */
-
-/**
  * Creates schedule management helper functions
  * @param {Array} schedule - Current schedule state
  * @param {Function} setSchedule - State setter for schedule

@@ -3,15 +3,11 @@ import { AlertCircle, XCircle } from "lucide-react";
 import { getAvailableCountries } from "../../config/appConfig";
 
 /**
- * Reusable PhoneCountryInput component
- * Used in SignUp and Profile pages
- * Handles country selection and phone number input with validation
- * 
  * @param {string} country - Selected country name
- * @param {string} countryCode - Phone code (e.g., "+961")
+ * @param {string} countryCode - Phone code
  * @param {string} phone - Phone number
- * @param {function} onCountryChange - Callback when country changes (receives event)
- * @param {function} onPhoneChange - Callback when phone changes (receives event)
+ * @param {function} onCountryChange - Callback when country changes
+ * @param {function} onPhoneChange - Callback when phone changes
  * @param {function} onPhoneBlur - Callback when phone input loses focus
  * @param {string} error - Error message to display
  * @param {boolean} disabled - Whether inputs are disabled

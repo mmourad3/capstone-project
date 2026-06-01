@@ -11,13 +11,11 @@ export function SmartBackButton({ className = '', label = 'Back', onGoBack = nul
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const handleBack = () => {
-    // If custom onGoBack is provided, use it
     if (onGoBack) {
       onGoBack();
       return;
     }
     
-    // Fallback to old behavior
     const dormId = searchParams.get('dormId');
     const userRole = user?.role;
     const dashboardPath = getDashboardPath(userRole);

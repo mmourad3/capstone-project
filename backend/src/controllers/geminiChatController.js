@@ -44,7 +44,8 @@ export const chatWithGemini = async (req, res) => {
 
     if (!process.env.GEMINI_API_KEY) {
       return res.json({
-        response: "Chatbot is not configured. Please add GEMINI_API_KEY in .env.",
+        response:
+          "Chatbot is not configured. Please add GEMINI_API_KEY in .env.",
       });
     }
 
@@ -70,8 +71,18 @@ ${trimmedMessage}
     });
   } catch (error) {
     console.error("Gemini chatbot error:", error);
-    res.status(500).json({
-      message: "Gemini chatbot failed. Please try again.",
+
+    const status = error?.status || error?.code || 500;
+
+    if (status === 503) {
+      return res.status(503).json({
+        message:
+          "Gemini is temporarily unavailable. Please try again in a few moments.",
+      });
+    }
+
+    return res.status(500).json({
+      message: error?.message || "Gemini chatbot failed. Please try again.",
     });
   }
 };

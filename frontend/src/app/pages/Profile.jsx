@@ -25,7 +25,7 @@ import { getAvailableCountries } from "../config/appConfig";
 import { uploadProfilePicture, deleteProfilePictureFromUrl } from '../utils/uploadProfilePicture';
 
 export default function Profile() {
-  const { user, loading } = useAuth();
+  const { user, loading, updateUser } = useAuth();
 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -56,7 +56,6 @@ export default function Profile() {
   };
 
   const handleViewProviderProfile = (providerId, listingId = null) => {
-    // Get listing ID from parameter, or fallback to URL if not provided
     const finalListingId = listingId || searchParams.get('dorm');
     
     // Build URL with context
@@ -196,7 +195,6 @@ const handleSaveProfile = async () => {
         user.id,
       );
 
-      // delete old image (if exists)
       if (oldProfilePictureUrl) {
         await deleteProfilePictureFromUrl(oldProfilePictureUrl);
       }
@@ -386,11 +384,9 @@ useEffect(() => {
   }, [userData.role]);
 
 
-  // Handle URL parameter for opening specific dorm
   useEffect(() => {
     const dormId = searchParams.get('dorm');
     if (dormId && favoritedListings.length > 0) {
-      // Compare as strings since IDs can be numbers or strings
       const listing = favoritedListings.find(l => String(l.id) === String(dormId));
       if (listing) {
         setSelectedListing(listing);
@@ -398,7 +394,6 @@ useEffect(() => {
     }
   }, [searchParams, favoritedListings]);
 
-  // Update URL when modal opens/closes
   const handleViewDetails = (listing) => {
     setSelectedListing(listing);
     setSearchParams({ dorm: listing.id });
@@ -556,6 +551,7 @@ const toggleSaved = async (id) => {
             editedSchedule={editedSchedule}
             setEditedSchedule={setEditedSchedule}
             scheduleHelpers={scheduleHelpers}
+            updateUser={updateUser}
           />
         )}
 

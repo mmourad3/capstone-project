@@ -6,7 +6,6 @@ import RequestRoommateButton from "./RequestRoommateButton";
 import { SmartBackButton } from "./SmartBackButton";
 import { useState } from "react";
 
-// Interest icons mapping
 const interestIcons = {
   "Gaming": Gamepad2,
   "Music": Music,
@@ -21,11 +20,6 @@ const interestIcons = {
 };
 
 /**
- * Reusable ProfileView Component
- * 
- * Used for displaying user profiles with compatibility analysis
- * 
- * Props:
  * @param {Object} profile - The profile data to display
  * @param {Object} viewerQuestionnaire - The current user's questionnaire for compatibility
  * @param {boolean} showRequestButton - Whether to show "Request as Roommate" button
@@ -53,7 +47,6 @@ export default function ProfileView({
     if (onGoBack) {
       onGoBack();
     } else {
-      // Default behavior: go back in history
       navigate(-1);
     }
   };
@@ -104,7 +97,6 @@ export default function ProfileView({
   const q = profile.questionnaire;
   const showCompatibility = viewerQuestionnaire !== null;
 
-  // Calculate compatibility using the comprehensive calculator
   const compatibility = showCompatibility 
     ? calculateCompatibility(viewerQuestionnaire, q)
     : null;
@@ -252,7 +244,6 @@ export default function ProfileView({
             <div className="grid md:grid-cols-2 gap-4">
               {/* What You Have in Common - Always visible */}
               {(() => {
-                // Filter out Deal Breaker Penalties from the green section
                 const filteredReasons = compatibility.matchReasons 
                   ? compatibility.matchReasons.filter(match => match.category !== 'Deal Breaker Penalties')
                   : [];
@@ -301,13 +292,12 @@ export default function ProfileView({
 
               {/* Things to Discuss - Always visible */}
               {(() => {
-                // Separate conflicts into categories for proper ordering
-                const dealBreakerViolations = []; // Their violations of YOUR deal breakers (affects score, -10 pts)
-                const criticalConflicts = []; // Critical severity conflicts
-                const highConflicts = []; // High severity conflicts
-                const mediumConflicts = []; // Medium severity conflicts
-                const lowConflicts = []; // Low severity conflicts
-                const reverseDealBreakers = []; // Your violations of THEIR deal breakers (doesn't affect score)
+                const dealBreakerViolations = [];
+                const criticalConflicts = [];
+                const highConflicts = []; 
+                const mediumConflicts = [];
+                const lowConflicts = []; 
+                const reverseDealBreakers = []; 
                 
                 // 1. Separate deal breaker violations and regular conflicts by severity
                 if (compatibility.potentialConflicts && compatibility.potentialConflicts.length > 0) {
@@ -329,10 +319,8 @@ export default function ProfileView({
                   });
                 }
                 
-                // 2. Add reverse deal breakers (you violate THEIR deal breakers) - LAST
                 if (compatibility.reverseDealBreakerViolations && compatibility.reverseDealBreakerViolations.length > 0) {
                   const dealBreakers = compatibility.reverseDealBreakerViolations.map(v => {
-                    // Remove everything after and including the colon
                     const detailWithoutExplanation = v.detail.split(':')[0];
                     return detailWithoutExplanation;
                   }).join(', ');
@@ -344,13 +332,7 @@ export default function ProfileView({
                   });
                 }
                 
-                // Combine in priority order:
-                // 1. Deal breakers FIRST (red shield)
-                // 2. Critical conflicts (red triangle)
-                // 3. High severity conflicts (orange triangle)
-                // 4. Medium severity conflicts (yellow triangle)
-                // 5. Low severity conflicts (yellow triangle)
-                // 6. Reverse deal breakers LAST (orange shield, doesn't affect score)
+                
                 const allConflicts = [
                   ...dealBreakerViolations,
                   ...criticalConflicts,

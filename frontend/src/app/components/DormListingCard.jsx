@@ -26,7 +26,7 @@ export function DormListingCard({
               >
                 {dorm.title}
               </h3>
-              {/* Status Badge - Only show for Active/Inactive, not for Found Roommate */}
+              {/* Status Badge*/}
               {dorm.status !== 'Found Roommate' && (
                 <span
                   className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0 ${

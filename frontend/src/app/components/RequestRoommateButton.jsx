@@ -8,7 +8,6 @@ export default function RequestRoommateButton({ user, dormId, onRequestSent, siz
   const [hasActiveRoommate, setHasActiveRoommate] = useState(false);
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [loading, setLoading] = useState(false);
-  // Size variants
   const isCompact = size === 'compact';
   const widthClass = isCompact ? '' : 'w-full';
   const paddingClass = isCompact ? 'px-3 py-2' : 'px-4 py-2.5';
@@ -52,7 +51,6 @@ useEffect(() => {
       setHasPendingRequest(true);
       toast.success(`Roommate request sent to ${user.name}!`);
       
-      // Dispatch custom event to sync all button instances
       window.dispatchEvent(new CustomEvent('roommateRequestSent', { 
         detail: { recipientUserId: user.id } 
       }));

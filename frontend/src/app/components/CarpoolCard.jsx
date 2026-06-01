@@ -5,7 +5,7 @@ import { openWhatsAppChat } from "../utils/whatsappUtils";
 
 export function CarpoolCard({ 
   carpool, 
-  type = "browse", // "browse" or "my-listing"
+  type = "browse",
   hasJoined = false,
   onJoin,
   onLeave,
@@ -18,12 +18,10 @@ export function CarpoolCard({
   const returnTime = getReturnTime(carpool);
 
   const driverName = carpool.driverName || "the driver";
-  // Get days from the driver's selected schedule block (there's only one per carpool)
+  // Get days from the driver's selected schedule block
   const getScheduleDays = () => {
     if (!carpool.driverSchedule || carpool.driverSchedule.length === 0) return [];
-    
-    // Each carpool has exactly ONE schedule block that the driver selected
-    const selectedBlock = carpool.driverSchedule[0];
+      const selectedBlock = carpool.driverSchedule[0];
     if (!selectedBlock || !selectedBlock.days) return [];
     
     // Sort the days in week order

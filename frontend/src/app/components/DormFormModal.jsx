@@ -162,7 +162,6 @@ export function DormFormModal({
                 value={formData.price}
                 onChange={(e) => {
                   const value = e.target.value;
-                  // Only allow $, numbers, and decimal point
                   if (value === "" || /^[\$]?[0-9]*\.?[0-9]*$/.test(value)) {
                     setFormData({ ...formData, price: value });
                   }

@@ -1,17 +1,9 @@
-/**
- * Comprehensive Compatibility Calculator for Backend
- *
- * This is the server-side version that can be used with Prisma/PostgreSQL
- * Imports the core calculation logic from the shared calculator
- */
-
 import { calculateCompatibility as coreCalculate } from "./comprehensiveCompatibilityCalculator.js";
 
 /**
- * Calculate compatibility and format for database storage
  * @param {Object} seekerQuestionnaire - Seeker's questionnaire
  * @param {Object} providerQuestionnaire - Provider's questionnaire
- * @returns {Object} - Formatted for Prisma CompatibilityScore model
+ * @returns {Object}
  */
 export function calculateCompatibilityForDB(
   seekerQuestionnaire,
@@ -27,10 +19,9 @@ export function calculateCompatibilityForDB(
     };
   }
 
-  // Use the comprehensive calculator
   const result = coreCalculate(seekerQuestionnaire, providerQuestionnaire);
 
-  // Format for database (convert arrays/objects to JSON strings)
+  // Format for database
   return {
     score: result.score,
     matchReasons: JSON.stringify(result.matchReasons),
@@ -57,7 +48,7 @@ export function calculateCompatibilityScore(
 
 /**
  * Parse database compatibility record back to object format
- * @param {Object} dbRecord - Record from Prisma CompatibilityScore model
+ * @param {Object} dbRecord
  * @returns {Object} - Parsed compatibility data
  */
 export function parseCompatibilityFromDB(dbRecord) {

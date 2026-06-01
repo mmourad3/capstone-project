@@ -1,6 +1,3 @@
-// Rate limiting
-// const PHOTON_BASE_URL = 'https://photon.komoot.io';
-
 const PHOTON_BASE_URL = 'http://localhost:5000/api/geocoding';
 let lastRequestTime = 0;
 const MIN_REQUEST_INTERVAL = 200; // 200ms between requests
@@ -34,9 +31,6 @@ export const searchPlaces = async (query, countryCode = null) => {
 
   await waitForRateLimit();
   try {
-    // Build URL with country code filter if provided
-    // let url = `${PHOTON_BASE_URL}/api/?q=${encodeURIComponent(query)}&limit=20`;
-
     const url = `${PHOTON_BASE_URL}/search?q=${encodeURIComponent(query)}`;
     
     const response = await fetch(url, {
@@ -148,8 +142,6 @@ const getGeolocationErrorMessage = (code) => {
 export const reverseGeocode = async (lat, lng) => {
   await waitForRateLimit();
   try {
-    // const url = `${PHOTON_BASE_URL}/reverse?lon=${lng}&lat=${lat}`;
-
     const url = `${PHOTON_BASE_URL}/reverse?lon=${lng}&lat=${lat}`;
     
     const response = await fetch(url, {
@@ -191,8 +183,6 @@ export const reverseGeocode = async (lat, lng) => {
 export const geocodeAddress = async (address) => {
   await waitForRateLimit();
   try {
-    // const url = `${PHOTON_BASE_URL}/api/?q=${encodeURIComponent(address)}&limit=1`;
-
     const url = `${PHOTON_BASE_URL}/search?q=${encodeURIComponent(address)}&limit=1`;
     
     const response = await fetch(url, {

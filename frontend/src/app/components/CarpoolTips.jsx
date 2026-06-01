@@ -41,10 +41,7 @@ const carpoolRules = [
   },
 ];
 
-/**
- * Carpool Tips Component
- * Displays rules for riders or a checklist for drivers.
- */
+
 export function CarpoolTips({ type = "rider" }) {
   if (type === "rider") {
     return (
